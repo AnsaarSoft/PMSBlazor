@@ -1,0 +1,10 @@
+﻿@page "/logoutcomponent"
+@inject NavigationManager oNavigation
+
+@code {
+    protected async override Task OnInitializedAsync()
+    {
+        await Task.Delay(5);
+        oNavigation.NavigateTo("/login", true);
+    }
+}

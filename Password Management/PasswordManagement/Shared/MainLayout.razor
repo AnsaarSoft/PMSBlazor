@@ -1,0 +1,71 @@
+﻿@inherits LayoutComponentBase
+
+@inject NavigationManager oNavigation
+@inject ILocalStorageService oLocalStorage
+@inject AuthenticationStateProvider oAuthService
+
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<PageTitle>Password Management</PageTitle>
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudText> <MudIcon Icon="@Icons.Rounded.WavingHand" /> Hi! @LoggedInUser <MudIcon Icon="@Icons.Rounded.Person" /> </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
+            </Authorized>
+            <NotAuthorized>
+                <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" OnClick="Logout" />
+            </NotAuthorized>
+        </AuthorizeView>
+
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.subtitle2">Password Management</MudText>
+        </MudDrawerHeader>
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-5 pt-5">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> oAuthState { get; set; }
+    bool _drawerOpen = true;
+    string LoggedInUser = string.Empty;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        //return base.OnInitializedAsync();
+        var result = await oAuthState;
+        if (result is not null)
+            LoggedInUser = result.User.Identity.Name;
+    }
+
+    async Task Logout()
+    {
+        var CustomAuth = (CustomAuthentication)oAuthService;
+        await CustomAuth.UpdateAuthenticationState(null);
+        oNavigation.NavigateTo("/login", true);
+    }
+
+
+
+
+}

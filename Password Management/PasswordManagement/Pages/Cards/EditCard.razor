@@ -1,0 +1,64 @@
+﻿@page "/editcard"
+@page "/editcard/{Id:int}"
+@layout MainLayout
+
+@if (oModel is not null)
+{
+    <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
+    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Edit Card</MudText>
+    <MudCard Elevation="2">
+        <MudCardContent>
+            <MudContainer>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudTextField @bind-Value="oModel.CardName" Label="Type" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudTextField @bind-Value="oModel.Alias" Label="Name" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
+                    </MudItem>
+                </MudGrid>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudTextField @bind-Value="oModel.UserCode" Label="User Code" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudTextField @bind-Value="oModel.Password" Label="Password" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" OnAdornmentClick="GeneratePassword"/>
+                    </MudItem>
+                </MudGrid>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudTextField @bind-Value="oModel.Email" Label="Email" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudTextField @bind-Value="oModel.WebLink" Label="Web Link" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
+                    </MudItem>
+                </MudGrid>
+                <MudGrid>
+                    <MudItem xs="12" sm="12" md="12">
+                        <MudTextField @bind-Value="oModel.Remarks" Label="Remarks" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" Lines="2" />
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="btnSave" OnClick="SaveCard">Save</MudButton>
+
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="btnCancel" OnClick="CancelCard">Cancel</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+else
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+
+<style>
+
+    .btnSave {
+        margin-left: 30px;
+    }
+
+    .btnCancel {
+        margin-left: 15px;
+    }
+</style>                 

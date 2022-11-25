@@ -1,0 +1,58 @@
+﻿@page "/settings"
+@layout MainLayout
+
+@if (oModel is not null)
+{
+    <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
+    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Settings</MudText>
+    <MudCard Elevation="2">
+        <MudCardContent>
+            <MudContainer>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudSwitch @bind-Checked="oModel.flgCapitalLetter" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Capital Letters" LabelPosition="LabelPosition.End"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudSwitch @bind-Checked="oModel.flgSmallLetter" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Small Letters" LabelPosition="LabelPosition.End" />
+                    </MudItem>
+                </MudGrid>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudSwitch @bind-Checked="oModel.flgNumbers" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Numbers" LabelPosition="LabelPosition.End" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudSwitch @bind-Checked="oModel.flgSpecial" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Special" LabelPosition="LabelPosition.End" />
+                    </MudItem>
+                </MudGrid>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="6">
+                        <MudNumericField @bind-Value="oModel.PasswodLenght" Label="Password Lenght" InputType="InputType.Number" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"  Min="0" Max="20"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="6">
+                        
+                    </MudItem>
+                </MudGrid>
+            </MudContainer>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="btnSave" OnClick="SaveSetting">Save</MudButton>
+
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="btnCancel" OnClick="CancelSetting">Cancel</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+else
+{
+    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+}
+
+<style>
+
+    .btnSave {
+        margin-left: 30px;
+    }
+
+    .btnCancel {
+        margin-left: 15px;
+    }
+</style>   
