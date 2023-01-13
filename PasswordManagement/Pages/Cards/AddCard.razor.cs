@@ -110,9 +110,10 @@ namespace PasswordManagement.Pages.Cards
         {
             oToast.Add(message, Severity.Info);
         }
-
+        
         public async Task GeneratePassword()
         {
+
             try
             {
                 var oPasswordSettings = await oServices.GetSettings();

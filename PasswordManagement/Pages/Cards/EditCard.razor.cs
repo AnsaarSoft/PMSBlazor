@@ -117,21 +117,21 @@ namespace PasswordManagement.Pages.Cards
                 int PasswordStrenght = oPasswordSettings.PasswodLenght;
                 for (int i = 0; i < 6; i++)
                 {
-                    if (PasswordStrenght >= password.Length) break;
+                    if (PasswordStrenght <= password.Length) break;
                     //Small Letter
                     if (oPasswordSettings.flgSmallLetter)
                     {
                         Random smallLetter = new Random(i + DateTime.Now.Millisecond);
                         password += Convert.ToChar(smallLetter.Next(97, 122));
                     }
-                    if (PasswordStrenght >= password.Length) break;
+                    if (PasswordStrenght <= password.Length) break;
                     //Big Letter
                     if (oPasswordSettings.flgCapitalLetter)
                     {
                         Random bigLetter = new Random(i + DateTime.Now.Millisecond + 2);
                         password += Convert.ToChar(bigLetter.Next(65, 90));
                     }
-                    if (PasswordStrenght >= password.Length) break;
+                    if (PasswordStrenght <= password.Length) break;
                     //Special Letter
                     if(oPasswordSettings.flgSpecial)
                     {
@@ -144,7 +144,7 @@ namespace PasswordManagement.Pages.Cards
                             password += Convert.ToChar(chars[specialLetter.Next(0, 6)]);
                         }
                     }
-                    if (PasswordStrenght >= password.Length) break;
+                    if (PasswordStrenght <= password.Length) break;
                     //Number Letter
                     if(oPasswordSettings.flgNumbers)
                     {
