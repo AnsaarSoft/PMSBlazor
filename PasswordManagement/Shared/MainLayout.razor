@@ -42,7 +42,7 @@
 @code {
     [CascadingParameter]
     private Task<AuthenticationState> oAuthState { get; set; }
-    bool _drawerOpen = true;
+    bool _drawerOpen = false;
     string LoggedInUser = string.Empty;
 
     void DrawerToggle()

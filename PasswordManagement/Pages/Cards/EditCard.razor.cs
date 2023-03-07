@@ -152,7 +152,10 @@ namespace PasswordManagement.Pages.Cards
                         password += Convert.ToChar(numberLetter.Next(48, 57));
                     }
                 }
-                oModel.Remarks += Environment.NewLine + oModel.Password;
+                if (oModel.Id != 0)
+                {
+                    oModel.Remarks += $"{Environment.NewLine}Password changed from {oModel.Password} to {password}";
+                }
                 oModel.Password = password;
             }
             catch (Exception ex)
