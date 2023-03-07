@@ -17,7 +17,7 @@ namespace PasswordManagement.Pages.Cards
         [Inject] NavigationManager oNavigation { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
-
+        
 
         #endregion
 
