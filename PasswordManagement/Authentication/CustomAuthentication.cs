@@ -25,12 +25,12 @@ namespace PasswordManagement.Authentication
                 if (oSaveUserData is null)
                     return await Task.FromResult(new AuthenticationState(oAnonymous));
                 var ClaimedPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, oSaveUserData.UserCode),
-                new Claim(ClaimTypes.Surname, oSaveUserData.FullName),
-                new Claim(ClaimTypes.Email, oSaveUserData.Email),
-                new Claim(ClaimTypes.Role, "Admin")
-            }, "CustomAuth"));
+                {
+                    new Claim(ClaimTypes.Name, oSaveUserData.UserCode),
+                    new Claim(ClaimTypes.Surname, oSaveUserData.FullName),
+                    new Claim(ClaimTypes.Email, oSaveUserData.Email),
+                    new Claim(ClaimTypes.Role, "Admin")
+                }, "CustomAuth"));
                 return await Task.FromResult(new AuthenticationState(ClaimedPrincipal));
             }
             catch
@@ -42,7 +42,7 @@ namespace PasswordManagement.Authentication
         public async Task UpdateAuthenticationState(MstUser oUser)
         {
             ClaimsPrincipal claimsPrincipal;
-            if(oUser is null)
+            if (oUser is null)
             {
                 await oSessionStorage.DeleteAsync("LoginUser");
                 claimsPrincipal = oAnonymous;
@@ -51,7 +51,7 @@ namespace PasswordManagement.Authentication
             {
                 await oSessionStorage.SetAsync("LoginUser", oUser);
                 claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                {   
+                {
                     new Claim(ClaimTypes.Name, oUser.UserCode),
                     new Claim(ClaimTypes.Surname, oUser.FullName),
                     new Claim(ClaimTypes.Email, oUser.Email),

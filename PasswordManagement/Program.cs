@@ -73,7 +73,6 @@ try
 catch (Exception ex)
 {
     logger.Error(ex);
-    throw (ex);
 }
 finally
 {

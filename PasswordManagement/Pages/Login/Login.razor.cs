@@ -1,6 +1,7 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MudBlazor;
 using PasswordManagement.Authentication;
@@ -104,6 +105,19 @@ namespace PasswordManagement.Pages.Login
                 
             }
             flgClicked = false;
+        }
+
+        public async Task PasswordKeypress(KeyboardEventArgs args)
+        {
+            try
+            {
+               if(args.Key == "Enter")
+                   await CheckLogin();
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         public void SuccessMessage(string message)

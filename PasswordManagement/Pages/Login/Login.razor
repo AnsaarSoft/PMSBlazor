@@ -1,6 +1,6 @@
-﻿
-@page "/login"
+﻿@page "/login"
 @layout LoginLayout
+
 
 
 <div>
@@ -13,7 +13,7 @@
 
     <MudTextField T="string" @bind-Value="oModel.UserCode" Label="User Code" Variant="Variant.Outlined" Class="my-6"></MudTextField>
 
-    <MudTextField T="string" @bind-Value="oModel.Password" Label="Password" Variant="Variant.Outlined" InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
+    <MudTextField T="string" @bind-Value="oModel.Password" Label="Password" Variant="Variant.Outlined" InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="TogglePasswordVisibility"/>
 
 </div>
 
@@ -22,4 +22,6 @@
 </div>
 <MudAlert Severity="Severity.Info" Class="mt-8 mud-width-full" Style="max-width:500px;">For registration and login contact MFM ®.</MudAlert>
 <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true" OnClick="CheckLogin" Disabled="flgClicked">Sign In</MudButton>
+
+
 
