@@ -111,12 +111,12 @@ namespace PasswordManagement.Pages.Login
         {
             try
             {
-               if(args.Key == "Enter")
+               if(args.Code == "Enter" || args.Code == "NumpadEnter")
                    await CheckLogin();
             }
             catch (Exception ex)
             {
-
+                
             }
         }
 
@@ -134,8 +134,6 @@ namespace PasswordManagement.Pages.Login
         {
             oToast.Add(message, Severity.Info);
         }
-
-
 
         #endregion
     }

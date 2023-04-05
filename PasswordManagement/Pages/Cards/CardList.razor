@@ -29,8 +29,8 @@
                             <RowTemplate>
                                 <MudTd DataLabel="Type">@context.CardName</MudTd>
                                 <MudTd DataLabel="Name">@context.Alias </MudTd>
-                                <MudTd DataLabel="User code"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="CopyUser" Style="margin-right: 10px;" />@context.UserCode </MudTd>
-                                <MudTd DataLabel="Password"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="CopyPassword" Style="margin-right: 10px;" />@context.Password </MudTd>
+                                <MudTd DataLabel="User code"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyUser(context.UserCode))" Style="margin-right: 10px;" />@context.UserCode </MudTd>
+                                <MudTd DataLabel="Password"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyPassword(context.Password))" Style="margin-right: 10px;" />@context.Password </MudTd>
                                 <MudTd DataLabel="Email">@context.Email</MudTd>
                                 <MudTd DataLabel="">
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogEdit(context.Id))" />

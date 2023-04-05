@@ -2,7 +2,7 @@
 @page "/editcard/{Id:int}"
 @layout MainLayout
 
-@if (oModel is not null)
+@if (oModel.Id > 0)
 {
     <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
     <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Edit Card</MudText>
@@ -49,7 +49,7 @@
 }
 else
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
 }
 
 <style>
@@ -60,5 +60,10 @@ else
 
     .btnCancel {
         margin-left: 15px;
+    }
+    .MudLoader{
+        height: 100px;
+        width: 100px;
+        margin: auto;
     }
 </style>                 

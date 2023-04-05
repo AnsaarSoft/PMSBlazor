@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.JSInterop;
 using MudBlazor;
 using MudBlazor.Services;
 using PasswordManagement.Data;
@@ -22,6 +23,7 @@ namespace PasswordManagement.Pages.Cards
         [Inject] IDialogService DialogService { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
+        [Inject] IJSRuntime oJS { get; set; }
 
 
         #endregion
@@ -53,14 +55,28 @@ namespace PasswordManagement.Pages.Cards
             oNavigation.NavigateTo("/addcard");
         }
 
-        public void CopyUser()
+        public async Task CopyUser(string value)
         {
-             
+            try
+            {
+                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", value);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
         }
 
-        public void CopyPassword()
+        public async Task CopyPassword(string value)
         {
-            
+            try
+            {
+                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", value);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
         }
 
         async Task OpenDialogEdit(int Id)

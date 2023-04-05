@@ -2,7 +2,7 @@
 @layout MainLayout
 @attribute [Authorize(Roles = "Admin")]
 
-@if (oModel is not null)
+@if (oModel.Id == 0)
 {
     <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
     <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Add Card</MudText>
