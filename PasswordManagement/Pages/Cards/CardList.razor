@@ -12,7 +12,7 @@
             <MudContainer>
                 <MudGrid>
                     <MudItem xs="12" sm="6" md="12">
-                        <MudTable Items="Cards" Hover="true" Striped="true" Bordered="true" Filter="new Func<MstCard,bool>(FilterFuncCards)" @bind-SelectedItem="SelectedItem">
+                        <MudTable Items="Cards" Hover="true" Striped="true" Bordered="true" RowsPerPage=100 Filter="new Func<MstCard,bool>(FilterFuncCards)" @bind-SelectedItem="SelectedItem">
                             <ToolBarContent>
                                 <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="SendtoAddCard" />
                                 <MudSpacer/>
