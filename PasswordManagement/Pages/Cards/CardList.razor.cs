@@ -34,7 +34,7 @@ namespace PasswordManagement.Pages.Cards
         {
             try
             {
-                //await Task.Delay(1000);
+                await Task.Delay(1000);
                 BreadCrumItems = new List<BreadcrumbItem>
                 {
                     new BreadcrumbItem("Cards", href: "#"),

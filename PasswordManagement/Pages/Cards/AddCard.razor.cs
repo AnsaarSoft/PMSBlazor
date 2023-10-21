@@ -13,7 +13,7 @@ namespace PasswordManagement.Pages.Cards
         MstCard oModel = new();
         string SearchValue = string.Empty;
         List<BreadcrumbItem> BreadCrumItems;
-
+        bool flgLoad = false;
 
         [Inject] NavigationManager oNavigation { get; set; }
         [Inject] ISnackbar oToast { get; set; }
@@ -28,12 +28,13 @@ namespace PasswordManagement.Pages.Cards
         {
             try
             {
+                await Task.Delay(1000);
                 BreadCrumItems = new List<BreadcrumbItem>
                 {
                     new BreadcrumbItem("Cards", href: "#"),
                     new BreadcrumbItem("Add Card", href: "#")
                 };
-                await Task.Delay(1000);
+                flgLoad = true;
             }
             catch (Exception ex)
             {

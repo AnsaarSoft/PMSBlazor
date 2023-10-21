@@ -2,11 +2,11 @@
 @layout MainLayout
 @attribute [Authorize(Roles = "Admin")]
 
-@if (oModel.Id == 0)
+@if (flgLoad)
 {
     <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
     <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Add Card</MudText>
-    <MudCard Elevation="2">
+    <MudCard Elevation="0">
         <MudCardContent>
             <MudContainer>
                 <MudGrid>
@@ -49,16 +49,35 @@
 }
 else
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <div class="CenterLoader">
+        <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
+    </div>
 }
 
 <style>
 
     .btnSave {
         margin-left: 30px;
+        width: 100px;
     }
 
     .btnCancel {
         margin-left: 15px;
+        width: 100px;
+    }
+
+    .CenterLoader {
+        display: flex;
+        height: 700px;
+        width: 100%;
+        justify-content: center;
+        justify-items: center;
+    }
+
+    .MudLoader {
+        justify-content: center;
+        height: 100px;
+        width: 100px;
+        margin: auto;
     }
 </style>                 

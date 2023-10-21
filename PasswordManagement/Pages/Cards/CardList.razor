@@ -1,13 +1,13 @@
 ﻿@page "/"
 @page "/cardlist"
 @layout MainLayout
-@attribute [Authorize(Roles ="Admin")]
+@attribute [Authorize(Roles = "Admin")]
 
-@if (Cards is not null)
+@if (Cards.Count != 0)
 {
     <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
-    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Accounts</MudText>
-    <MudCard Elevation="2">
+    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Account List</MudText>
+    <MudCard Elevation="0">
         <MudCardContent>
             <MudContainer>
                 <MudGrid>
@@ -15,7 +15,7 @@
                         <MudTable Items="Cards" Hover="true" Striped="true" Bordered="true" RowsPerPage=100 Filter="new Func<MstCard,bool>(FilterFuncCards)" @bind-SelectedItem="SelectedItem">
                             <ToolBarContent>
                                 <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="SendtoAddCard" />
-                                <MudSpacer/>
+                                <MudSpacer />
                                 <MudTextField @bind-Value="SearchValue" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                             </ToolBarContent>
                             <HeaderContent>
@@ -35,7 +35,7 @@
                                 <MudTd DataLabel="">
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogEdit(context.Id))" />
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogDelete(context))" Style="margin-left: 10px;" />
-                                    </MudTd>
+                                </MudTd>
                             </RowTemplate>
                             <PagerContent>
                                 <MudSpacer />
@@ -50,5 +50,35 @@
 }
 else
 {
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
+    <div class="CenterLoader">
+        <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
+    </div>
 }
+
+<style>
+
+    .btnSave {
+        margin-left: 30px;
+        width: 100px;
+    }
+
+    .btnCancel {
+        margin-left: 15px;
+        width: 100px;
+    }
+
+    .CenterLoader {
+        display: flex;
+        height: 700px;
+        width: 100%;
+        justify-content: center;
+        justify-items: center;
+    }
+
+    .MudLoader {
+        justify-content: center;
+        height: 100px;
+        width: 100px;
+        margin: auto;
+    }
+</style>    

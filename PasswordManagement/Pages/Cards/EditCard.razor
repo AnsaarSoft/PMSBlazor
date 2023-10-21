@@ -5,8 +5,8 @@
 @if (oModel.Id > 0)
 {
     <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
-    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Edit Card</MudText>
-    <MudCard Elevation="2">
+    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Card Details</MudText>
+    <MudCard Elevation="0">
         <MudCardContent>
             <MudContainer>
                 <MudGrid>
@@ -49,19 +49,33 @@
 }
 else
 {
-    <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
+    <div class="CenterLoader">
+        <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
+    </div>
 }
 
 <style>
 
     .btnSave {
         margin-left: 30px;
+        width:100px;
     }
 
     .btnCancel {
         margin-left: 15px;
+        width:100px;
     }
-    .MudLoader{
+
+    .CenterLoader {
+        display: flex;
+        height: 700px;
+        width: 100%;
+        justify-content: center;
+        justify-items: center;
+    }
+
+    .MudLoader {
+        justify-content: center;
         height: 100px;
         width: 100px;
         margin: auto;
