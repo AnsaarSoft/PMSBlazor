@@ -24,6 +24,7 @@ namespace PasswordManagement.Data
         {
             var Collection = await (from a in dbContext.MstCards
                               where a.IsDeleted == false
+                              orderby a.CardName ascending
                               select a).ToListAsync();
             return Collection;
         }

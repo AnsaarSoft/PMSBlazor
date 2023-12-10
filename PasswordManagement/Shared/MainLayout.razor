@@ -1,8 +1,8 @@
 ﻿@inherits LayoutComponentBase
 
 @inject NavigationManager oNavigation
-@inject ILocalStorageService oLocalStorage
 @inject AuthenticationStateProvider oAuthService
+@inject ProtectedSessionStorage oSessionStorage
 
 
 <MudThemeProvider />
@@ -55,7 +55,17 @@
         //return base.OnInitializedAsync();
         var result = await oAuthState;
         if (result is not null)
-            LoggedInUser = result.User.Identity.Name;
+        {
+            if(result.User.Identity.IsAuthenticated)
+            {
+                //LoggedInUser = result.User.Identity.Name ;
+                var oSaveUserDataResult = await oSessionStorage.GetAsync<MstUser>("LoginUser");
+                if(oSaveUserDataResult.Success)
+                {
+                    LoggedInUser = oSaveUserDataResult.Value.FullName;
+                }
+            }
+        }
     }
 
     async Task Logout()

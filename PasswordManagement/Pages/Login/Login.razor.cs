@@ -1,5 +1,4 @@
-﻿using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -21,12 +20,11 @@ namespace PasswordManagement.Pages.Login
         InputType PasswordInput = InputType.Password;
         string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
         MstUser oModel = new();
-
+        bool flgLoading = false;
         
         [Inject] NavigationManager oNavigation { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
-        [Inject] ILocalStorageService oLocalStorage { get; set; }
         [Inject] AuthenticationStateProvider oAuthService { get; set; }
 
         #endregion
@@ -93,6 +91,7 @@ namespace PasswordManagement.Pages.Login
                         FullName = result.FullName,
                         Email = result.Email
                     });
+                    await Task.Delay(2000);
                     oNavigation.NavigateTo("/cardlist", true);
                 }
                 else

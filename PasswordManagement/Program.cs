@@ -1,4 +1,3 @@
-using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Components.Web;
@@ -26,7 +25,6 @@ try
     builder.Services.AddAuthenticationCore();
     builder.Services.AddRazorPages();
     builder.Services.AddServerSideBlazor();
-    builder.Services.AddBlazoredLocalStorage();
     builder.Services.AddScoped<ProtectedSessionStorage>();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthentication>();
     builder.Services.AddDbContext<AccountContext>(option =>
