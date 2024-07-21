@@ -24,6 +24,7 @@ namespace PasswordManagement.Data
         public DbSet<MstCard> MstCards { get; set; }
         public DbSet<MstUser> MstUsers { get; set; }
         public DbSet<MstSetting> MstSettings { get; set; }
+        
 
         private MstUser AdminUser()
         {
