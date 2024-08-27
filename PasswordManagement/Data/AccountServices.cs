@@ -7,13 +7,15 @@ namespace PasswordManagement.Data
     {
         #region Variables
         private AccountContext dbContext;
+        private readonly ILogger<AccountServices> logger;
 
         #endregion
 
         #region Constructor
-        public AccountServices(AccountContext accountDBContext)
+        public AccountServices(AccountContext accountDBContext , ILogger<AccountServices> plogger)
         {
             dbContext = accountDBContext;
+            this.logger = plogger;
         }
 
         #endregion
@@ -143,16 +145,26 @@ namespace PasswordManagement.Data
 
         public async Task<MstUser> CheckUser(MstUser record)
         {
-            var IfExists = (from a in dbContext.MstUsers where a.UserCode == record.UserCode && a.Password == record.Password select a).FirstOrDefault();   
-            if(IfExists is not null)
+            try
             {
-                return IfExists;
+                var IfExists = await (from a in dbContext.MstUsers where a.UserCode == record.UserCode && a.Password == record.Password select a).FirstOrDefaultAsync();
+                if (IfExists is not null)
+                {
+                    return IfExists;
+                }
+                else
+                {
+                    MstUser user = null;
+                    return user;
+                }
             }
-            else
+            catch (Exception ex)
             {
+                logger.LogError("Checkuser exception " + ex.Message);
                 MstUser user = null;
                 return user;
             }
+            
         }
 
         public async Task AddUser(MstUser record)

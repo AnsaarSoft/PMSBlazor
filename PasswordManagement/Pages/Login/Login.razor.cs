@@ -26,6 +26,8 @@ namespace PasswordManagement.Pages.Login
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
         [Inject] AuthenticationStateProvider oAuthService { get; set; }
+        [Inject] ILogger<Login> oLogger { get; set; }
+
 
         #endregion
 
@@ -45,6 +47,7 @@ namespace PasswordManagement.Pages.Login
             }
             catch (Exception ex)
             {
+                oLogger.LogError("Exception in IntiallizationForm " + ex.Message);
             }
         }
 
@@ -101,7 +104,7 @@ namespace PasswordManagement.Pages.Login
             }
             catch (Exception ex)
             {
-                
+                oLogger.LogError("exception in checklogin " + ex.Message);
             }
             flgClicked = false;
         }
@@ -115,7 +118,7 @@ namespace PasswordManagement.Pages.Login
             }
             catch (Exception ex)
             {
-                
+                oLogger.LogError("exception in keypress " + ex.Message);
             }
         }
 
