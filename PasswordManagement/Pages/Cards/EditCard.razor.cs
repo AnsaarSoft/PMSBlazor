@@ -135,12 +135,13 @@ namespace PasswordManagement.Pages.Cards
                     //Special Letter
                     if(oPasswordSettings.flgSpecial)
                     {
-                        if (i % 2 == 0)
+                        char[] chars = new char[7];
+                        chars[0] = '!'; chars[1] = '#'; chars[2] = '@'; chars[3] = '$';
+                        chars[4] = '*'; chars[5] = '^'; chars[6] = '%';
+                        //if (i % 2 == 0)
+                        if (!password.Contains(chars.ToString()))
                         {
                             Random specialLetter = new Random(i + DateTime.Now.Millisecond);
-                            char[] chars = new char[7];
-                            chars[0] = '!'; chars[1] = '#'; chars[2] = '@'; chars[3] = '$';
-                            chars[4] = '*'; chars[5] = '^'; chars[6] = '%';
                             password += Convert.ToChar(chars[specialLetter.Next(0, 6)]);
                         }
                     }

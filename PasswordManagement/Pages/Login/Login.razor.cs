@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MudBlazor;
@@ -43,7 +44,16 @@ namespace PasswordManagement.Pages.Login
         {
             try
             {
-                await Task.Delay(1000);
+                //await Task.Delay(1000);
+                var AuthState = await oAuthService.GetAuthenticationStateAsync();
+                if (AuthState is not null)
+                {
+                    if(AuthState.User.Identity.IsAuthenticated)
+                    {
+                        oNavigation.NavigateTo("/cardlist", true);
+                    }
+                }
+
             }
             catch (Exception ex)
             {
@@ -84,7 +94,7 @@ namespace PasswordManagement.Pages.Login
                 if(result is not null)
                 {
                     SuccessMessage("You logged in successfully.");
-                    //await oLocalStorage.SetItemAsync<MstUser>("User", result); 
+                    //await oStorage.SetItemAsync<MstUser>("User", result); 
                     //await Task.Delay(3000);
                     var CustomAuth = (CustomAuthentication)oAuthService;
                     await CustomAuth.UpdateAuthenticationState(new MstUser

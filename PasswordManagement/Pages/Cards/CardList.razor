@@ -12,7 +12,7 @@
             <MudContainer>
                 <MudGrid>
                     <MudItem xs="12" sm="6" md="12">
-                        <MudTable Items="Cards" Hover="true" Striped="true" Bordered="true" RowsPerPage=100 Filter="new Func<MstCard,bool>(FilterFuncCards)" @bind-SelectedItem="SelectedItem">
+                        <MudTable Items="Cards" Breakpoint="Breakpoint.Md" Hover="true" Striped="true" Bordered="true" RowsPerPage=100 Filter="new Func<MstCard,bool>(FilterFuncCards)" @bind-SelectedItem="SelectedItem">
                             <ToolBarContent>
                                 <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="SendtoAddCard" />
                                 <MudSpacer />
@@ -32,7 +32,7 @@
                                 <MudTd DataLabel="User code"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyUser(context.UserCode))" Style="margin-right: 10px;" />@context.UserCode </MudTd>
                                 <MudTd DataLabel="Password"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyPassword(context.Password))" Style="margin-right: 10px;" />@context.Password </MudTd>
                                 <MudTd DataLabel="Email">@context.Email</MudTd>
-                                <MudTd DataLabel="">
+                                <MudTd DataLabel="Actions">
                                     <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogEdit(context.Id))" />
                                     <MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogDelete(context))" Style="margin-left: 10px;" />
                                 </MudTd>

@@ -21,6 +21,8 @@ try
 
     StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
+    
+
     // Add services to the container.
     builder.Services.AddAuthenticationCore();
     builder.Services.AddRazorPages();
@@ -29,7 +31,8 @@ try
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthentication>();
     builder.Services.AddDbContext<AccountContext>(option =>
     {
-        option.UseSqlite("Data Source = Data\\accounts.db");
+        //option.UseSqlite("Data Source = Data\\accounts.db");
+        option.UseSqlite(builder.Configuration.GetSection("ConnectionString").Value.ToString());
     });
     builder.Services.AddScoped<AccountServices>();
 
