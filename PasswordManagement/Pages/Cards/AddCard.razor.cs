@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 using MudBlazor;
 using PasswordManagement.Data;
 using PMSModels.Models;
@@ -14,10 +15,11 @@ namespace PasswordManagement.Pages.Cards
         string SearchValue = string.Empty;
         List<BreadcrumbItem> BreadCrumItems;
         bool flgLoad = false;
-
+        NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         [Inject] NavigationManager oNavigation { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
+        [Inject] IJSRuntime oJS { get; set; }
 
 
         #endregion
@@ -38,7 +40,7 @@ namespace PasswordManagement.Pages.Cards
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
         }
 
@@ -82,7 +84,7 @@ namespace PasswordManagement.Pages.Cards
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
         }
 
@@ -90,11 +92,12 @@ namespace PasswordManagement.Pages.Cards
         {
             try
             {
+                await Task.Delay(1);
                 oNavigation.NavigateTo("/cardlist");
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
         }
 
@@ -142,12 +145,13 @@ namespace PasswordManagement.Pages.Cards
                     //Special Letter
                     if (oPasswordSettings.flgSpecial)
                     {
-                        if (i % 2 == 0)
+                        char[] chars = new char[7];
+                        chars[0] = '!'; chars[1] = '#'; chars[2] = '@'; chars[3] = '$';
+                        chars[4] = '*'; chars[5] = '^'; chars[6] = '%';
+                        bool PresentInArray = chars.Any(value => password.Contains(value));
+                        if (!PresentInArray)
                         {
                             Random specialLetter = new Random(i + DateTime.Now.Millisecond);
-                            char[] chars = new char[7];
-                            chars[0] = '!'; chars[1] = '#'; chars[2] = '@'; chars[3] = '$';
-                            chars[4] = '*'; chars[5] = '^'; chars[6] = '%';
                             password += Convert.ToChar(chars[specialLetter.Next(0, 6)]);
                         }
                     }
@@ -164,10 +168,11 @@ namespace PasswordManagement.Pages.Cards
                     oModel.Remarks += $"{Environment.NewLine}Password changed from {oModel.Password} to {password}";
                 }
                 oModel.Password = password;
+                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", password);
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
 
         }

@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.JSInterop;
 using MudBlazor;
 using PasswordManagement.Data;
 using PMSModels.Models;
 using System.Data;
+using static MudBlazor.Colors;
 
 namespace PasswordManagement.Pages.Cards
 {
@@ -14,11 +16,12 @@ namespace PasswordManagement.Pages.Cards
         MstCard oModel = new();
         string SearchValue = string.Empty;
         List<BreadcrumbItem> BreadCrumItems;
-
+        NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
         [Parameter] public int Id { get; set; }
         [Inject] NavigationManager oNavigation { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
+        [Inject] IJSRuntime oJS { get; set; }
 
 
         #endregion
@@ -45,7 +48,7 @@ namespace PasswordManagement.Pages.Cards
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
         }
 
@@ -89,7 +92,7 @@ namespace PasswordManagement.Pages.Cards
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
         }
 
@@ -97,12 +100,12 @@ namespace PasswordManagement.Pages.Cards
         {
             try
             {
-                await Task.Delay(1000);
+                await Task.Delay(1);
                 oNavigation.NavigateTo("/cardlist");
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
         }
 
@@ -138,8 +141,8 @@ namespace PasswordManagement.Pages.Cards
                         char[] chars = new char[7];
                         chars[0] = '!'; chars[1] = '#'; chars[2] = '@'; chars[3] = '$';
                         chars[4] = '*'; chars[5] = '^'; chars[6] = '%';
-                        //if (i % 2 == 0)
-                        if (!password.Contains(chars.ToString()))
+                        bool PresentInArray = chars.Any( value => password.Contains(value) );
+                        if (!PresentInArray)
                         {
                             Random specialLetter = new Random(i + DateTime.Now.Millisecond);
                             password += Convert.ToChar(chars[specialLetter.Next(0, 6)]);
@@ -158,10 +161,11 @@ namespace PasswordManagement.Pages.Cards
                     oModel.Remarks += $"{Environment.NewLine}Password changed from {oModel.Password} to {password}";
                 }
                 oModel.Password = password;
+                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", password);
             }
             catch (Exception ex)
             {
-
+                logger.Error(ex);
             }
 
         }
@@ -179,6 +183,18 @@ namespace PasswordManagement.Pages.Cards
         public void InfoMessage(string message)
         {
             oToast.Add(message, Severity.Info);
+        }
+
+        public async Task CopyPassword(string value)
+        {
+            try
+            {
+                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", value);
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+            }
         }
 
 

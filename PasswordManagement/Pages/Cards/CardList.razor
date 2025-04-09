@@ -29,12 +29,24 @@
                             <RowTemplate>
                                 <MudTd DataLabel="Type">@context.CardName</MudTd>
                                 <MudTd DataLabel="Name">@context.Alias </MudTd>
-                                <MudTd DataLabel="User code"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyUser(context.UserCode))" Style="margin-right: 10px;" />@context.UserCode </MudTd>
-                                <MudTd DataLabel="Password"><MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyPassword(context.Password))" Style="margin-right: 10px;" />@context.Password </MudTd>
+                                <MudTd DataLabel="User code">
+                                    <div class="d-flex flex-nowrap" style="align-items: center;">
+                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyUser(context.UserCode))" Style="margin-right: 10px;" />
+                                        @context.UserCode
+                                    </div>
+                                </MudTd>
+                                <MudTd DataLabel="Password">
+                                    <div class="d-flex flex-nowrap" style="align-items: center;">
+                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyPassword(context.Password))" Style="margin-right: 10px;" />
+                                        @context.Password
+                                    </div>
+                                </MudTd>
                                 <MudTd DataLabel="Email">@context.Email</MudTd>
                                 <MudTd DataLabel="Actions">
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogEdit(context.Id))" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogDelete(context))" Style="margin-left: 10px;" />
+                                    <div class="d-flex flex-nowrap">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogEdit(context.Id))" />
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogDelete(context))" Style="margin-left: 10px;" />
+                                    </div>
                                 </MudTd>
                             </RowTemplate>
                             <PagerContent>

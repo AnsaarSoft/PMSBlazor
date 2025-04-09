@@ -21,8 +21,6 @@ try
 
     StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
-    
-
     // Add services to the container.
     builder.Services.AddAuthenticationCore();
     builder.Services.AddRazorPages();
