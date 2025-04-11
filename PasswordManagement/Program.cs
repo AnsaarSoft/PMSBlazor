@@ -19,7 +19,7 @@ try
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
+    //StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
     // Add services to the container.
     builder.Services.AddAuthenticationCore();
@@ -33,11 +33,9 @@ try
         option.UseSqlite(builder.Configuration.GetSection("ConnectionString").Value.ToString());
     });
     builder.Services.AddScoped<AccountServices>();
-
-    builder.Services.AddMudServices();
     builder.Services.AddMudServices(option =>
     {
-        option.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
+        option.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
         option.SnackbarConfiguration.PreventDuplicates = true;
         option.SnackbarConfiguration.NewestOnTop = false;
         option.SnackbarConfiguration.ShowCloseIcon = false;
