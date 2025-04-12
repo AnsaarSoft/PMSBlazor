@@ -17,18 +17,18 @@ jobs:
             - uses: actions/checkout@v4
             
             - name: Setup .Net
-                uses: actions/setup-dotnet@v4
-                with:
-                    dotnet-version: ${{ env.DOTNET_VERSION }}
+              uses: actions/setup-dotnet@v4
+              with:
+              dotnet-version: ${{ env.DOTNET_VERSION }}
 
             - name: Restore
-                run: dotnet restore ./PasswordManagement.sln
+              run: dotnet restore ./PasswordManagement.sln
             
             - name: Build
-                run: dotnet build ./PasswordManagement.sln --configuration Release --no-restore
+              run: dotnet build ./PasswordManagement.sln --configuration Release --no-restore
             
             - name: Publish
-                run: dotnet publish ./PasswordManagement.sln --configuration Release --no-build
+              run: dotnet publish ./PasswordManagement.sln --configuration Release --no-build
 
 #   build:
 #     runs-on: windows-latest
