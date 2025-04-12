@@ -8,7 +8,8 @@ on:
 
 
 env:
-    DOTNET_VERSION: '6.0.x' 
+    DOTNET_VERSION: '6.0.x'
+    AZURE_WEBAPP_PACKAGE_PATH: './PasswordManagement'
  
 jobs:
     publish:
@@ -22,29 +23,11 @@ jobs:
                dotnet-version: ${{ env.DOTNET_VERSION }}
 
             - name: Restore
-              run: dotnet restore ./PasswordManagement.sln
+              run: dotnet restore ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
             
             - name: Build
-              run: dotnet build ./PasswordManagement.sln --configuration Release --no-restore
+              run: dotnet build ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --configuration Release --no-restore
             
             - name: Publish
-              run: dotnet publish ./PasswordManagement.sln --configuration Release --no-build
+              run: dotnet publish ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --configuration Release --no-build
 
-#   build:
-#     runs-on: windows-latest
-
-#     steps:
-#     - uses: actions/checkout@v2
-
-#     - name: Add MSBuild to PATH
-#       uses: microsoft/setup-msbuild@v1.0.2
-
-#     - name: Restore NuGet packages
-#       working-directory: ${{env.GITHUB_WORKSPACE}}
-#       run: nuget restore ${{env.SOLUTION_FILE_PATH}}
-
-#     - name: Build
-#       working-directory: ${{env.GITHUB_WORKSPACE}}
-#       # Add additional options to the MSBuild command line here (like platform or verbosity level).
-#       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-#       run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
