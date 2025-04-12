@@ -10,7 +10,7 @@ on:
 env:
     DOTNET_VERSION: '6.0.x'
     AZURE_WEBAPP_PACKAGE_PATH: './PasswordManagement'
- 
+    AZURE_APP_NAME: 'pmslive'
 jobs:
     publish:
         runs-on: windows-latest
@@ -30,4 +30,11 @@ jobs:
             
             - name: Publish
               run: dotnet publish ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} --configuration Release --no-build
+
+            - name: Deploy to Azure Web App
+              uses: azure/webapps-deploy@v2
+              with:
+                app-name: ${{ env.AZURE_APP_NAME }}
+                publish-profile: ${{ secrets.AZURE_SECRET_PROFILE }}
+                package: ./punlish
 
