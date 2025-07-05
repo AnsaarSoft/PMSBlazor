@@ -22,13 +22,14 @@ namespace PasswordManagement.Pages.Login
         string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
         MstUser oModel = new();
         bool flgLoading = false;
-        
+        bool flgRememberme = false;
+
         [Inject] NavigationManager oNavigation { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
         [Inject] AuthenticationStateProvider oAuthService { get; set; }
         [Inject] ILogger<Login> oLogger { get; set; }
-
+        [Inject] ProtectedLocalStorage oStorage { get; set; }
 
         #endregion
 
@@ -48,12 +49,25 @@ namespace PasswordManagement.Pages.Login
                 var AuthState = await oAuthService.GetAuthenticationStateAsync();
                 if (AuthState is not null)
                 {
-                    if(AuthState.User.Identity.IsAuthenticated)
+                    if (AuthState.User.Identity.IsAuthenticated)
                     {
                         oNavigation.NavigateTo("/cardlist", true);
                     }
-                }
+                    else
+                    {
+                        var usercode = await oStorage.GetAsync<string>("usercode");
+                        var password = await oStorage.GetAsync<string>("Password");
 
+                        if (usercode.Success)
+                        {
+                            oModel.UserCode = usercode.Value ?? "";
+                        }
+                        if (password.Success)
+                        {
+                            oModel.Password = usercode.Value ?? "";
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -79,6 +93,9 @@ namespace PasswordManagement.Pages.Login
 
         public async Task CheckLogin()
         {
+            if (flgClicked == true)
+                return;
+
             flgClicked = true;
             try
             {
@@ -86,12 +103,12 @@ namespace PasswordManagement.Pages.Login
                 {
                     InfoMessage("Usercode is mandatory.");
                 }
-                if(string.IsNullOrEmpty(oModel.Password))
+                if (string.IsNullOrEmpty(oModel.Password))
                 {
                     InfoMessage("Password is mandatory.");
                 }
                 var result = await oServices.CheckUser(oModel);
-                if(result is not null)
+                if (result is not null)
                 {
                     SuccessMessage("You logged in successfully.");
                     //await oStorage.SetItemAsync<MstUser>("User", result); 
@@ -100,11 +117,13 @@ namespace PasswordManagement.Pages.Login
                     await CustomAuth.UpdateAuthenticationState(new MstUser
                     {
                         UserCode = result.UserCode,
-                        Password = result.Password, 
+                        Password = result.Password,
                         FullName = result.FullName,
                         Email = result.Email
                     });
-                    await Task.Delay(2000);
+                    await oStorage.SetAsync("usercode", oModel.UserCode);
+                    await oStorage.SetAsync("password", oModel.Password);
+                    //await Task.Delay(2000);
                     oNavigation.NavigateTo("/cardlist", true);
                 }
                 else
@@ -123,8 +142,8 @@ namespace PasswordManagement.Pages.Login
         {
             try
             {
-               if(args.Code == "Enter" || args.Code == "NumpadEnter")
-                   await CheckLogin();
+                if (args.Code == "Enter" || args.Code == "NumpadEnter")
+                    await CheckLogin();
             }
             catch (Exception ex)
             {

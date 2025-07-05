@@ -13,12 +13,13 @@
 
     <MudTextField T="string" @bind-Value="oModel.UserCode" Label="User Code" Variant="Variant.Outlined" Class="my-6"></MudTextField>
 
-    <MudTextField T="string" @bind-Value="oModel.Password" OnKeyDown="PasswordKeypress" Immediate=true Label="Password" Variant="Variant.Outlined" InputType="@PasswordInput" Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
+    <MudTextField T="string" @bind-Value="oModel.Password" OnKeyDown="PasswordKeypress" Immediate=true Label="Password" Variant="Variant.Outlined" InputType="@PasswordInput" 
+    Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
 
 </div>
 
 <div Class="d-flex justify-space-between align-center">
-    <MudCheckBox T="bool" Label="Remember me?" Color="Color.Primary" Class="ml-n1 my-3"></MudCheckBox>
+    <MudCheckBox T="bool" @bind-value="flgRememberme" Label="Remember me?" Color="Color.Primary" Class="ml-n1 my-3"></MudCheckBox>
 </div>
 <MudAlert Severity="Severity.Info" Class="mt-8 mud-width-full" Style="max-width:500px;">For registration and login contact MFM ®.</MudAlert>
 

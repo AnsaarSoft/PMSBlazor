@@ -35,7 +35,7 @@ try
     builder.Services.AddScoped<AccountServices>();
     builder.Services.AddMudServices(option =>
     {
-        option.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
+        option.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
         option.SnackbarConfiguration.PreventDuplicates = true;
         option.SnackbarConfiguration.NewestOnTop = false;
         option.SnackbarConfiguration.ShowCloseIcon = false;

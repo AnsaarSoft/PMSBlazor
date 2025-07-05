@@ -5,7 +5,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using PasswordManagement.Data;
 using PMSModels.Models;
-using static MudBlazor.CategoryTypes;
+
 
 namespace PasswordManagement.Pages.Cards
 {
@@ -15,11 +15,14 @@ namespace PasswordManagement.Pages.Cards
 
         List<MstCard> Cards = new List<MstCard>();
         string SearchValue = string.Empty;
-        MstCard SelectedItem = null;
-        List<BreadcrumbItem> BreadCrumItems;
+        MstCard? SelectedItem = null;
+        List<BreadcrumbItem> BreadCrumItems = new List<BreadcrumbItem>();
         NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
         [Inject] NavigationManager oNavigation { get; set; }
+
+        
+
         [Inject] IDialogService DialogService { get; set; }
         [Inject] ISnackbar oToast { get; set; }
         [Inject] AccountServices oServices { get; set; }
@@ -165,6 +168,16 @@ namespace PasswordManagement.Pages.Cards
         #endregion
 
         #region Events
+
+        //public CardList(NavigationManager Navigation, IDialogService DialogService, ISnackbar Snackbar, AccountServices pAccountServices, IJSRuntime pJSRuntime)
+        //{
+        //    this.oNavigation = Navigation;
+        //    this.DialogService = DialogService;
+        //    this.oToast = Snackbar;
+        //    this.oServices = pAccountServices;
+        //    this.oJS = pJSRuntime;
+        //}
+
 
         protected async override Task OnInitializedAsync()
         {

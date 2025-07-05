@@ -16,7 +16,7 @@
                             <ToolBarContent>
                                 <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="SendtoAddCard" />
                                 <MudSpacer />
-                                <MudTextField @bind-Value="SearchValue" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                                <MudTextField @bind-Value="SearchValue" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Immediate="true" Class="mt-0"></MudTextField>
                             </ToolBarContent>
                             <HeaderContent>
                                 <MudTh>Type</MudTh>
