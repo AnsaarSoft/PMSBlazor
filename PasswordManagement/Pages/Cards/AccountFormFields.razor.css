@@ -1,0 +1,50 @@
+.account-form {
+    width: 100%;
+}
+
+.account-form ::deep .form-surface {
+    overflow: hidden;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 12px;
+}
+
+.form-section {
+    padding: 1.5rem;
+}
+
+.section-heading {
+    margin-bottom: 1.25rem;
+}
+
+.password-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.form-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    background-color: var(--mud-palette-background-grey);
+}
+
+@media (max-width: 600px) {
+    .form-section {
+        padding: 1rem;
+    }
+
+    .password-actions ::deep .mud-button-root,
+    .form-actions ::deep .mud-button-root {
+        width: 100%;
+    }
+
+    .form-actions {
+        flex-direction: column-reverse;
+        padding: 1rem;
+    }
+}

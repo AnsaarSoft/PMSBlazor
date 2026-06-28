@@ -1,83 +1,39 @@
-﻿@page "/addcard"
+@page "/addcard"
 @layout MainLayout
 @attribute [Authorize(Roles = "Admin")]
 
-@if (flgLoad)
-{
-    <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
-    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Add Card</MudText>
-    <MudCard Elevation="0">
-        <MudCardContent>
-            <MudContainer>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudTextField @bind-Value="oModel.CardName" Label="Type" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudTextField @bind-Value="oModel.Alias" Label="Name" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
-                    </MudItem>
-                </MudGrid>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudTextField @bind-Value="oModel.UserCode" Label="User Code" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudTextField @bind-Value="oModel.Password" Label="Password" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Password" OnAdornmentClick="GeneratePassword" />
-                    </MudItem>
-                </MudGrid>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudTextField @bind-Value="oModel.Email" Label="Email" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudTextField @bind-Value="oModel.WebLink" Label="Web Link" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" />
-                    </MudItem>
-                </MudGrid>
-                <MudGrid>
-                    <MudItem xs="12" sm="12" md="12">
-                        <MudTextField @bind-Value="oModel.Remarks" Label="Remarks" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.TextFields" Lines="2" />
-                    </MudItem>
-                </MudGrid>
-            </MudContainer>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="btnSave" OnClick="SaveCard">Save</MudButton>
+<NavigationLock ConfirmExternalNavigation="@HasUnsavedChanges"
+                OnBeforeInternalNavigation="ConfirmInternalNavigation" />
 
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="btnCancel" OnClick="CancelCard">Cancel</MudButton>
-        </MudCardActions>
-    </MudCard>
-}
-else
-{
-    <div class="CenterLoader">
-        <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
+<div class="add-account-page">
+    <MudBreadcrumbs Items="BreadcrumbItems" />
+
+    <div class="page-heading">
+        <MudText Typo="Typo.h4">Add account</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Save the account details and credentials you want to manage.
+        </MudText>
     </div>
-}
 
-<style>
+    <EditForm EditContext="@FormContext" OnValidSubmit="SaveCard" OnInvalidSubmit="HandleInvalidSubmit">
+        <DataAnnotationsValidator />
 
-    .btnSave {
-        margin-left: 30px;
-        width: 100px;
-    }
-
-    .btnCancel {
-        margin-left: 15px;
-        width: 100px;
-    }
-
-    .CenterLoader {
-        display: flex;
-        height: 700px;
-        width: 100%;
-        justify-content: center;
-        justify-items: center;
-    }
-
-    .MudLoader {
-        justify-content: center;
-        height: 100px;
-        width: 100px;
-        margin: auto;
-    }
-</style>                 
+        <AccountFormFields @ref="AccountForm"
+                           Model="oModel"
+                           SearchAccountTypes="SearchAccountTypes"
+                           IsSaving="IsSaving"
+                           IsLoadingFormData="IsLoadingFormData"
+                           IsGenerating="IsGenerating"
+                           IsPasswordVisible="IsPasswordVisible"
+                           CanGeneratePassword="@(PasswordSettings is not null)"
+                           PasswordSettingsDescription="PasswordSettingsDescription"
+                           CredentialsDescription="Enter the sign-in information for this account."
+                           SubmitText="Add account"
+                           SubmittingText="Adding account…"
+                           SubmitIcon="@Icons.Material.Filled.Add"
+                           TogglePasswordVisibility="TogglePasswordVisibility"
+                           GeneratePassword="GeneratePassword"
+                           CopyPassword="CopyPassword"
+                           Cancel="CancelCard" />
+    </EditForm>
+</div>

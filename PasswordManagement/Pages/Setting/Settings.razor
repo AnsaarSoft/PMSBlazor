@@ -1,58 +1,189 @@
-﻿@page "/settings"
+@page "/settings"
 @layout MainLayout
+@attribute [Authorize(Roles = "Admin")]
 
-@if (oModel is not null)
-{
-    <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
-    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Settings</MudText>
-    <MudCard Elevation="2">
-        <MudCardContent>
-            <MudContainer>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudSwitch @bind-Checked="oModel.flgCapitalLetter" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Capital Letters" LabelPosition="LabelPosition.End"/>
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudSwitch @bind-Checked="oModel.flgSmallLetter" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Small Letters" LabelPosition="LabelPosition.End" />
-                    </MudItem>
-                </MudGrid>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudSwitch @bind-Checked="oModel.flgNumbers" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Numbers" LabelPosition="LabelPosition.End" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudSwitch @bind-Checked="oModel.flgSpecial" Color="Color.Primary" UnCheckedColor="Color.Secondary" Label="Special" LabelPosition="LabelPosition.End" />
-                    </MudItem>
-                </MudGrid>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="6">
-                        <MudNumericField @bind-Value="oModel.PasswodLenght" Label="Password Lenght" InputType="InputType.Number" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Numbers"  Min="0" Max="20"/>
-                    </MudItem>
-                    <MudItem xs="12" sm="6" md="6">
-                        
-                    </MudItem>
-                </MudGrid>
-            </MudContainer>
-        </MudCardContent>
-        <MudCardActions>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="btnSave" OnClick="SaveSetting">Save</MudButton>
+<NavigationLock ConfirmExternalNavigation="@HasUnsavedChanges"
+                OnBeforeInternalNavigation="ConfirmInternalNavigation" />
 
-            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="btnCancel" OnClick="CancelSetting">Cancel</MudButton>
-        </MudCardActions>
-    </MudCard>
-}
-else
-{
-    <MudProgressCircular Color="Color.Primary" Style="height:70px;width:70px;" Indeterminate="true" />
-}
+<div class="settings-page">
+    @if (IsLoading)
+    {
+        <div class="page-heading">
+            <MudText Typo="Typo.h4">Settings</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Loading password policy…</MudText>
+        </div>
 
-<style>
-
-    .btnSave {
-        margin-left: 30px;
+        <MudPaper Class="loading-surface pa-4" Elevation="0">
+            @for (var index = 0; index < 5; index++)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="58px" Class="mb-3" />
+            }
+        </MudPaper>
     }
+    else if (!string.IsNullOrEmpty(LoadErrorMessage))
+    {
+        <div class="page-heading">
+            <MudText Typo="Typo.h4">Settings</MudText>
+        </div>
 
-    .btnCancel {
-        margin-left: 15px;
+        <MudPaper Class="state-surface pa-8" Elevation="0">
+            <MudIcon Icon="@Icons.Material.Filled.SettingsBackupRestore" Color="Color.Error" Size="Size.Large" />
+            <MudText Typo="Typo.h6" Class="mt-3">Settings could not be loaded</MudText>
+            <MudText Color="Color.Secondary" Class="mt-1 mb-4">@LoadErrorMessage</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="LoadSettingsAsync">
+                Retry
+            </MudButton>
+        </MudPaper>
     }
-</style>   
+    else
+    {
+        <div class="page-heading">
+            <MudText Typo="Typo.h4">Settings</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Configure the policy used when generating account passwords.
+            </MudText>
+        </div>
+
+        <EditForm EditContext="@FormContext" OnValidSubmit="SaveSettings" OnInvalidSubmit="HandleInvalidSubmit">
+            <DataAnnotationsValidator />
+
+            <MudPaper Class="settings-surface" Elevation="1">
+                <section class="settings-section">
+                    <div class="section-heading">
+                        <MudText Typo="Typo.h6">Password length</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Choose a length between 6 and 20 characters.
+                        </MudText>
+                    </div>
+
+                    <MudNumericField T="int"
+                                     @ref="PasswordLengthField"
+                                     @bind-Value="oModel.PasswordLength"
+                                     For="@(() => oModel.PasswordLength)"
+                                     Label="Password length"
+                                     Variant="Variant.Outlined"
+                                     Adornment="Adornment.Start"
+                                     AdornmentIcon="@Icons.Material.Filled.Numbers"
+                                     Min="6"
+                                     Max="20"
+                                     Step="1"
+                                     Disabled="@IsSaving" />
+                </section>
+
+                <MudDivider />
+
+                <section class="settings-section">
+                    <div class="section-heading">
+                        <MudText Typo="Typo.h6">Character types</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">
+                            Select at least one character type for generated passwords.
+                        </MudText>
+                    </div>
+
+                    <div class="policy-options">
+                        <div class="policy-option">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Uppercase letters</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">A–Z</MudText>
+                            </div>
+                            <MudSwitch T="bool"
+                                       @bind-Checked="oModel.UseUppercase"
+                                       For="@(() => oModel.UseUppercase)"
+                                       Color="Color.Primary"
+                                       Disabled="@IsSaving"
+                                       aria-label="Use uppercase letters" />
+                        </div>
+
+                        <div class="policy-option">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Lowercase letters</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">a–z</MudText>
+                            </div>
+                            <MudSwitch T="bool"
+                                       @bind-Checked="oModel.UseLowercase"
+                                       For="@(() => oModel.UseLowercase)"
+                                       Color="Color.Primary"
+                                       Disabled="@IsSaving"
+                                       aria-label="Use lowercase letters" />
+                        </div>
+
+                        <div class="policy-option">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Numbers</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">0–9</MudText>
+                            </div>
+                            <MudSwitch T="bool"
+                                       @bind-Checked="oModel.UseNumbers"
+                                       For="@(() => oModel.UseNumbers)"
+                                       Color="Color.Primary"
+                                       Disabled="@IsSaving"
+                                       aria-label="Use numbers" />
+                        </div>
+
+                        <div class="policy-option">
+                            <div>
+                                <MudText Typo="Typo.subtitle2">Symbols</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">! # @@ $ * ^ %</MudText>
+                            </div>
+                            <MudSwitch T="bool"
+                                       @bind-Checked="oModel.UseSymbols"
+                                       For="@(() => oModel.UseSymbols)"
+                                       Color="Color.Primary"
+                                       Disabled="@IsSaving"
+                                       aria-label="Use symbols" />
+                        </div>
+                    </div>
+
+                    @if (!IsPolicyValid)
+                    {
+                        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mt-4">
+                            @PolicyValidationMessage
+                        </MudAlert>
+                    }
+                </section>
+
+                <MudDivider />
+
+                <section class="settings-section">
+                    <div class="section-heading">
+                        <MudText Typo="Typo.h6">Policy summary</MudText>
+                    </div>
+
+                    <MudPaper Class="policy-summary pa-4" Elevation="0">
+                        <MudIcon Icon="@Icons.Material.Filled.Security" Color="Color.Primary" />
+                        <MudText Typo="Typo.body1">@PolicyDescription</MudText>
+                    </MudPaper>
+                </section>
+
+                <div class="settings-actions">
+                    <MudButton ButtonType="ButtonType.Button"
+                               Variant="Variant.Text"
+                               Color="Color.Default"
+                               Disabled="@(!HasUnsavedChanges || IsSaving)"
+                               OnClick="DiscardChanges">
+                        Discard changes
+                    </MudButton>
+
+                    <MudButton ButtonType="ButtonType.Submit"
+                               Variant="Variant.Filled"
+                               Color="Color.Primary"
+                               StartIcon="@(IsSaving ? null : Icons.Material.Filled.Save)"
+                               Disabled="@(!HasUnsavedChanges || !IsPolicyValid || IsSaving)">
+                        @if (IsSaving)
+                        {
+                            <MudProgressCircular Class="me-2" Size="Size.Small" Indeterminate="true" />
+                            <span>Saving settings…</span>
+                        }
+                        else
+                        {
+                            <span>Save settings</span>
+                        }
+                    </MudButton>
+                </div>
+            </MudPaper>
+        </EditForm>
+    }
+</div>

@@ -1,171 +1,108 @@
-﻿using Microsoft.AspNetCore.Components;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using MudBlazor;
 using PasswordManagement.Authentication;
 using PasswordManagement.Data;
-using PMSModels.Models;
-using System.Collections;
 
-namespace PasswordManagement.Pages.Login
+namespace PasswordManagement.Pages.Login;
+
+public partial class Login
 {
-    public partial class Login
+    private const string RememberedUserCodeKey = "remembered-user-code";
+
+    private bool PasswordVisibility;
+    private bool IsSigningIn;
+    private InputType PasswordInput = InputType.Password;
+    private string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
+    private readonly LoginModel Model = new();
+    private bool RememberMe;
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+    [Inject] private AccountServices Accounts { get; set; } = default!;
+    [Inject] private AuthenticationStateProvider Authentication { get; set; } = default!;
+    [Inject] private ILogger<Login> Logger { get; set; } = default!;
+    [Inject] private ProtectedLocalStorage LocalStorage { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
     {
-
-        #region Variable
-
-        bool PasswordVisibility;
-        bool flgClicked = false;
-        InputType PasswordInput = InputType.Password;
-        string PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
-        MstUser oModel = new();
-        bool flgLoading = false;
-        bool flgRememberme = false;
-
-        [Inject] NavigationManager oNavigation { get; set; }
-        [Inject] ISnackbar oToast { get; set; }
-        [Inject] AccountServices oServices { get; set; }
-        [Inject] AuthenticationStateProvider oAuthService { get; set; }
-        [Inject] ILogger<Login> oLogger { get; set; }
-        [Inject] ProtectedLocalStorage oStorage { get; set; }
-
-        #endregion
-
-        #region Functions
-
-        protected async override Task OnInitializedAsync()
+        try
         {
-            //return base.OnInitializedAsync();
-            await InitiallizeForm();
-        }
-
-        public async Task InitiallizeForm()
-        {
-            try
+            var state = await Authentication.GetAuthenticationStateAsync();
+            if (state.User.Identity?.IsAuthenticated == true)
             {
-                //await Task.Delay(1000);
-                var AuthState = await oAuthService.GetAuthenticationStateAsync();
-                if (AuthState is not null)
-                {
-                    if (AuthState.User.Identity.IsAuthenticated)
-                    {
-                        oNavigation.NavigateTo("/cardlist", true);
-                    }
-                    else
-                    {
-                        var usercode = await oStorage.GetAsync<string>("usercode");
-                        var password = await oStorage.GetAsync<string>("Password");
-
-                        if (usercode.Success)
-                        {
-                            oModel.UserCode = usercode.Value ?? "";
-                        }
-                        if (password.Success)
-                        {
-                            oModel.Password = usercode.Value ?? "";
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                oLogger.LogError("Exception in IntiallizationForm " + ex.Message);
-            }
-        }
-
-        void TogglePasswordVisibility()
-        {
-            if (PasswordVisibility)
-            {
-                PasswordVisibility = false;
-                PasswordInputIcon = Icons.Material.Filled.VisibilityOff;
-                PasswordInput = InputType.Password;
-            }
-            else
-            {
-                PasswordVisibility = true;
-                PasswordInputIcon = Icons.Material.Filled.Visibility;
-                PasswordInput = InputType.Text;
-            }
-        }
-
-        public async Task CheckLogin()
-        {
-            if (flgClicked == true)
+                Navigation.NavigateTo("/cardlist", forceLoad: true);
                 return;
+            }
 
-            flgClicked = true;
-            try
+            var savedUserCode = await LocalStorage.GetAsync<string>(RememberedUserCodeKey);
+            if (savedUserCode.Success && !string.IsNullOrWhiteSpace(savedUserCode.Value))
             {
-                if (string.IsNullOrEmpty(oModel.UserCode))
-                {
-                    InfoMessage("Usercode is mandatory.");
-                }
-                if (string.IsNullOrEmpty(oModel.Password))
-                {
-                    InfoMessage("Password is mandatory.");
-                }
-                var result = await oServices.CheckUser(oModel);
-                if (result is not null)
-                {
-                    SuccessMessage("You logged in successfully.");
-                    //await oStorage.SetItemAsync<MstUser>("User", result); 
-                    //await Task.Delay(3000);
-                    var CustomAuth = (CustomAuthentication)oAuthService;
-                    await CustomAuth.UpdateAuthenticationState(new MstUser
-                    {
-                        UserCode = result.UserCode,
-                        Password = result.Password,
-                        FullName = result.FullName,
-                        Email = result.Email
-                    });
-                    await oStorage.SetAsync("usercode", oModel.UserCode);
-                    await oStorage.SetAsync("password", oModel.Password);
-                    //await Task.Delay(2000);
-                    oNavigation.NavigateTo("/cardlist", true);
-                }
-                else
-                {
-                    ErrorMessage("Wrong Credentials, try again.");
-                }
-            }
-            catch (Exception ex)
-            {
-                oLogger.LogError("exception in checklogin " + ex.Message);
-            }
-            flgClicked = false;
-        }
-
-        public async Task PasswordKeypress(KeyboardEventArgs args)
-        {
-            try
-            {
-                if (args.Code == "Enter" || args.Code == "NumpadEnter")
-                    await CheckLogin();
-            }
-            catch (Exception ex)
-            {
-                oLogger.LogError("exception in keypress " + ex.Message);
+                Model.UserCode = savedUserCode.Value;
+                RememberMe = true;
             }
         }
-
-        public void SuccessMessage(string message)
+        catch (Exception ex)
         {
-            oToast.Add(message, Severity.Success);
+            Logger.LogWarning(ex, "The remembered login could not be restored.");
         }
+    }
 
-        public void ErrorMessage(string message)
+    private void TogglePasswordVisibility()
+    {
+        PasswordVisibility = !PasswordVisibility;
+        PasswordInput = PasswordVisibility ? InputType.Text : InputType.Password;
+        PasswordInputIcon = PasswordVisibility
+            ? Icons.Material.Filled.Visibility
+            : Icons.Material.Filled.VisibilityOff;
+    }
+
+    private async Task CheckLogin()
+    {
+        if (IsSigningIn)
+            return;
+
+        IsSigningIn = true;
+
+        try
         {
-            oToast.Add(message, Severity.Error);
-        }
+            var user = await Accounts.AuthenticateUser(Model.UserCode, Model.Password);
+            if (user is null)
+            {
+                Snackbar.Add("The user code or password is incorrect.", Severity.Error);
+                return;
+            }
 
-        public void InfoMessage(string message)
+            var customAuthentication = (CustomAuthentication)Authentication;
+            await customAuthentication.UpdateAuthenticationState(user);
+
+            if (RememberMe)
+                await LocalStorage.SetAsync(RememberedUserCodeKey, user.UserCode);
+            else
+                await LocalStorage.DeleteAsync(RememberedUserCodeKey);
+
+            Snackbar.Add("You logged in successfully.", Severity.Success);
+            Navigation.NavigateTo("/cardlist", forceLoad: true);
+        }
+        catch (Exception ex)
         {
-            oToast.Add(message, Severity.Info);
+            Logger.LogError(ex, "Login failed unexpectedly.");
+            Snackbar.Add("Unable to sign in right now. Please try again.", Severity.Error);
         }
+        finally
+        {
+            IsSigningIn = false;
+        }
+    }
 
-        #endregion
+    private sealed class LoginModel
+    {
+        [Required(ErrorMessage = "User code is required.")]
+        public string UserCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        public string Password { get; set; } = string.Empty;
     }
 }

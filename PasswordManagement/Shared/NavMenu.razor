@@ -1,4 +1,77 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="cardlist" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AccountBox">Accounts</MudNavLink>
-    <MudNavLink Href="settings" Match="NavLinkMatch.Prefix" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
-</MudNavMenu>
+@implements IDisposable
+@inject NavigationManager Navigation
+
+<nav class="side-navigation" aria-label="Primary navigation">
+    <MudText Typo="Typo.overline" Class="navigation-label">Workspace</MudText>
+
+    <MudNavMenu Class="navigation-menu">
+        <MudNavLink Href="/cardlist"
+                    Match="NavLinkMatch.All"
+                    Icon="@Icons.Material.Outlined.AccountBox"
+                    Class="@GetItemClass(IsAccountsActive)"
+                    OnClick="HandleNavigation"
+                    aria-label="Accounts, saved credentials">
+            <span class="navigation-copy">
+                <span class="navigation-title">Accounts</span>
+                <span class="navigation-description">Saved credentials</span>
+            </span>
+        </MudNavLink>
+
+        <MudNavLink Href="/settings"
+                    Match="NavLinkMatch.Prefix"
+                    Icon="@Icons.Material.Outlined.Settings"
+                    Class="@GetItemClass(IsSettingsActive)"
+                    OnClick="HandleNavigation"
+                    aria-label="Settings, password policy">
+            <span class="navigation-copy">
+                <span class="navigation-title">Settings</span>
+                <span class="navigation-description">Password policy</span>
+            </span>
+        </MudNavLink>
+    </MudNavMenu>
+
+    <div class="navigation-footer">
+        <MudIcon Icon="@Icons.Material.Outlined.Security" Size="Size.Small" />
+        <span>Password Manager v@ApplicationVersion</span>
+    </div>
+</nav>
+
+@code {
+    [Parameter] public EventCallback OnNavigate { get; set; }
+
+    private string CurrentPath => Navigation
+        .ToBaseRelativePath(Navigation.Uri)
+        .Split('?', '#')[0]
+        .Trim('/')
+        .ToLowerInvariant();
+
+    private bool IsAccountsActive => string.IsNullOrEmpty(CurrentPath)
+        || CurrentPath == "cardlist"
+        || CurrentPath == "addcard"
+        || CurrentPath.StartsWith("editcard", StringComparison.Ordinal);
+
+    private bool IsSettingsActive => CurrentPath.StartsWith("settings", StringComparison.Ordinal);
+
+    private static string ApplicationVersion =>
+        typeof(NavMenu).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += HandleLocationChanged;
+    }
+
+    private static string GetItemClass(bool isActive) =>
+        isActive ? "navigation-item navigation-item-active" : "navigation-item";
+
+    private Task HandleNavigation() => OnNavigate.InvokeAsync();
+
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs args)
+    {
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= HandleLocationChanged;
+    }
+}

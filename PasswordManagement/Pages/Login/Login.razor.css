@@ -1,0 +1,18 @@
+.login-header {
+    text-align: center;
+}
+
+.login-logo {
+    display: block;
+    width: 150px;
+    max-width: 70%;
+    height: auto;
+    margin: 0 auto 1.25rem;
+}
+
+@media (max-width: 600px) {
+    .login-logo {
+        width: 130px;
+        margin-bottom: 1rem;
+    }
+}

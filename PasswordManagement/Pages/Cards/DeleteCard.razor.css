@@ -1,0 +1,57 @@
+.delete-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    max-width: 32rem;
+}
+
+.delete-dialog-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.delete-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: rgba(var(--mud-palette-error-rgb), 0.12);
+}
+
+.delete-title {
+    margin: 0 0 0.25rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+::deep .account-summary {
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 8px;
+    background-color: var(--mud-palette-background-grey);
+}
+
+.delete-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+@media (max-width: 600px) {
+    .delete-dialog-heading {
+        gap: 0.75rem;
+    }
+
+    .delete-dialog-actions {
+        flex-direction: column-reverse;
+    }
+
+    .delete-dialog-actions ::deep .mud-button-root {
+        width: 100%;
+    }
+}

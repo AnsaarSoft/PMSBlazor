@@ -1,11 +1,70 @@
-﻿<MudDialog>
+<MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h4" Color="Color.Warning">Warning!</MudText>
+        <div class="delete-dialog-content">
+            <div class="delete-dialog-heading">
+                <div class="delete-icon" aria-hidden="true">
+                    <MudIcon Icon="@Icons.Material.Filled.DeleteOutline" Color="Color.Error" Size="Size.Large" />
+                </div>
 
-        <MudText>@ContentText</MudText>
+                <div>
+                    <h2 class="delete-title">Delete account?</h2>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">
+                        Confirm that this is the account you want to remove.
+                    </MudText>
+                </div>
+            </div>
+
+            <MudPaper Class="account-summary pa-4" Elevation="0">
+                <MudText Typo="Typo.subtitle1">@Account.Alias</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@Account.CardName</MudText>
+                @if (!string.IsNullOrWhiteSpace(Account.UserCode))
+                {
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">@Account.UserCode</MudText>
+                }
+            </MudPaper>
+
+            <MudText Typo="Typo.body2">
+                This account will be removed from your account list.
+            </MudText>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Outlined">
+                    @ErrorMessage
+                </MudAlert>
+            }
+        </div>
     </DialogContent>
+
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit">@ButtonText</MudButton>
+        <div class="delete-dialog-actions">
+            <MudButton ButtonType="ButtonType.Button"
+                       Variant="Variant.Text"
+                       Color="Color.Default"
+                       Disabled="@IsDeleting"
+                       OnClick="Cancel"
+                       autofocus
+                       aria-label="Cancel account deletion">
+                Cancel
+            </MudButton>
+
+            <MudButton ButtonType="ButtonType.Button"
+                       Variant="Variant.Filled"
+                       Color="Color.Error"
+                       Disabled="@IsDeleting"
+                       OnClick="Submit"
+                       aria-label="@($"Delete {Account.Alias}")">
+                @if (IsDeleting)
+                {
+                    <MudProgressCircular Class="me-2" Size="Size.Small" Indeterminate="true" />
+                    <span>Deleting…</span>
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Delete" Class="me-2" Size="Size.Small" />
+                    <span>Delete account</span>
+                }
+            </MudButton>
+        </div>
     </DialogActions>
 </MudDialog>

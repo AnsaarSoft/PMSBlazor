@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.JSInterop;
 using MudBlazor;
-using MudBlazor.Services;
 using PasswordManagement.Data;
 using PMSModels.Models;
 
@@ -13,43 +11,46 @@ namespace PasswordManagement.Pages.Cards
     {
         #region Variables
 
-        List<MstCard> Cards = new List<MstCard>();
+        List<MstCard> Cards = new();
+        bool IsLoading = true;
+        string? LoadErrorMessage;
         string SearchValue = string.Empty;
-        MstCard? SelectedItem = null;
-        List<BreadcrumbItem> BreadCrumItems = new List<BreadcrumbItem>();
-        NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        HashSet<int> VisiblePasswords = new();
+        readonly int[] PageSizeOptions = { 10, 25, 50 };
+        readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
 
-        [Inject] NavigationManager oNavigation { get; set; }
+        [Inject] NavigationManager oNavigation { get; set; } = default!;
 
         
 
-        [Inject] IDialogService DialogService { get; set; }
-        [Inject] ISnackbar oToast { get; set; }
-        [Inject] AccountServices oServices { get; set; }
-        [Inject] IJSRuntime oJS { get; set; }
+        [Inject] IDialogService DialogService { get; set; } = default!;
+        [Inject] ISnackbar oToast { get; set; } = default!;
+        [Inject] AccountServices oServices { get; set; } = default!;
+        [Inject] IJSRuntime oJS { get; set; } = default!;
 
 
         #endregion
 
         #region Functions
         
-        public async Task InitiallizeForm()
+        public async Task LoadAccountsAsync()
         {
             try
             {
-                await Task.Delay(1000);
-                BreadCrumItems = new List<BreadcrumbItem>
-                {
-                    new BreadcrumbItem("Cards", href: "#"),
-                    new BreadcrumbItem("Card Details", href: "#")
-                };
-
+                IsLoading = true;
+                LoadErrorMessage = null;
                 Cards = await oServices.GetAllCards();
 
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                LoadErrorMessage = "Unable to load accounts. Check the connection and try again.";
+                ErrorMessage("Unable to load accounts.");
+            }
+            finally
+            {
+                IsLoading = false;
             }
         }
 
@@ -63,10 +64,12 @@ namespace PasswordManagement.Pages.Cards
             try
             {
                 await oJS.InvokeVoidAsync("navigator.clipboard.writeText", value);
+                SuccessMessage("User code copied.");
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                ErrorMessage("Unable to copy the user code.");
             }
         }
 
@@ -75,18 +78,37 @@ namespace PasswordManagement.Pages.Cards
             try
             {
                 await oJS.InvokeVoidAsync("navigator.clipboard.writeText", value);
+                SuccessMessage("Password copied.");
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                ErrorMessage("Unable to copy the password.");
             }
         }
 
-        async Task OpenDialogEdit(int Id)
+        private void ClearSearch()
+        {
+            SearchValue = string.Empty;
+        }
+
+        private bool IsPasswordVisible(int cardId)
+        {
+            return VisiblePasswords.Contains(cardId);
+        }
+
+        private void TogglePasswordVisibility(int cardId)
+        {
+            if (!VisiblePasswords.Add(cardId))
+            {
+                VisiblePasswords.Remove(cardId);
+            }
+        }
+
+        void OpenDialogEdit(int Id)
         {
             try
             {
-                await Task.Delay(5);
                 oNavigation.NavigateTo($"/editcard/{Id}");
             }
             catch (Exception ex)
@@ -102,34 +124,29 @@ namespace PasswordManagement.Pages.Cards
                 var Options = new DialogOptions
                 {
                     Position = DialogPosition.Center,
-                    DisableBackdropClick = true,
-                    CloseOnEscapeKey = false,
+                    DisableBackdropClick = false,
+                    CloseOnEscapeKey = true,
                     NoHeader = true,
                     MaxWidth = MaxWidth.Small,
                     FullWidth = true
                 };
-                var parameters = new DialogParameters();
-                parameters.Add("ContentText", "Do you really want to delete this records? This process cannot be undone.");
-                parameters.Add("ButtonText", "Delete");
-                parameters.Add("Color", Color.Error);
-                var dialog = DialogService.Show<DeleteCard>("Delete Card", parameters, Options);
+                var parameters = new DialogParameters
+                {
+                    [nameof(DeleteCard.Account)] = card
+                };
+                var dialog = DialogService.Show<DeleteCard>("Delete account", parameters, Options);
                 var result = await dialog.Result;
                 if (!result.Cancelled)
                 {
-                    var record = oServices.DeleteCard(card);
-                    if(record is null)
-                    {
-                        ErrorMessage("Record didn't deleted successfully.");
-                    }
-                    else
-                    {
-                        oNavigation.NavigateTo("/cardlist", true);
-                    }
+                    Cards.Remove(card);
+                    VisiblePasswords.Remove(card.Id);
+                    SuccessMessage("Account deleted successfully.");
                 }
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                ErrorMessage("Unable to delete the account.");
             }
         }
 
@@ -154,11 +171,18 @@ namespace PasswordManagement.Pages.Cards
         {
             if (string.IsNullOrWhiteSpace(SearchString))
                 return true;
-            if (Record.CardName.Contains(SearchString, StringComparison.OrdinalIgnoreCase))
+
+            var search = SearchString.Trim();
+
+            if (Record.CardName.Contains(search, StringComparison.OrdinalIgnoreCase))
                 return true;
-            if (Record.UserCode.Contains(SearchString, StringComparison.OrdinalIgnoreCase))
+            if (Record.UserCode.Contains(search, StringComparison.OrdinalIgnoreCase))
                 return true;
-            if (Record.Alias.Contains(SearchString, StringComparison.OrdinalIgnoreCase))
+            if (Record.Alias.Contains(search, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (Record.Email.Contains(search, StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (Record.WebLink.Contains(search, StringComparison.OrdinalIgnoreCase))
                 return true;
             return false;
         }
@@ -181,7 +205,7 @@ namespace PasswordManagement.Pages.Cards
 
         protected async override Task OnInitializedAsync()
         {
-            await InitiallizeForm();
+            await LoadAccountsAsync();
         }
 
         #endregion

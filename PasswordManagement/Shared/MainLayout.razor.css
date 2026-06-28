@@ -1,0 +1,129 @@
+.app-shell {
+    min-height: 100vh;
+    background-color: var(--mud-palette-background-grey);
+}
+
+.app-shell ::deep .app-topbar {
+    height: 64px;
+    padding: 0 1.25rem;
+    color: var(--mud-palette-text-primary);
+    background-color: var(--mud-palette-surface);
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.topbar-left,
+.user-section {
+    display: flex;
+    align-items: center;
+}
+
+.topbar-left {
+    gap: 0.75rem;
+}
+
+.brand-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    color: var(--mud-palette-primary);
+    background-color: rgba(var(--mud-palette-primary-rgb), 0.1);
+    border-radius: 10px;
+}
+
+.brand-copy,
+.user-copy {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title,
+.user-name {
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.brand-subtitle,
+.user-label {
+    color: var(--mud-palette-text-secondary);
+    line-height: 1.2;
+}
+
+.user-section {
+    gap: 0.75rem;
+}
+
+.user-copy {
+    min-width: 0;
+    max-width: 14rem;
+}
+
+.user-label {
+    font-size: 0.7rem;
+}
+
+.user-name {
+    overflow: hidden;
+    font-size: 0.875rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.user-divider {
+    width: 1px;
+    height: 1.75rem;
+    margin-left: 0.25rem;
+    background-color: var(--mud-palette-lines-default);
+}
+
+.app-shell ::deep .user-avatar {
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.app-shell ::deep .app-drawer {
+    border-right: 1px solid var(--mud-palette-lines-default);
+}
+
+.app-shell ::deep .drawer-header {
+    min-height: 64px;
+    border-bottom: 1px solid var(--mud-palette-lines-default);
+}
+
+.app-shell ::deep .app-content {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+@media (max-width: 600px) {
+    .app-shell ::deep .app-topbar {
+        padding: 0 0.75rem;
+    }
+
+    .brand-subtitle,
+    .user-copy,
+    .user-divider {
+        display: none;
+    }
+
+    .topbar-left,
+    .user-section {
+        gap: 0.5rem;
+    }
+
+    .app-shell ::deep .app-content {
+        padding-top: 1.25rem;
+        padding-bottom: 1.25rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .brand-mark {
+        display: none;
+    }
+
+    .brand-title {
+        font-size: 0.95rem;
+    }
+}

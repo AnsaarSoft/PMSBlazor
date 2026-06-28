@@ -1,41 +1,78 @@
-﻿@page "/login"
+@page "/login"
 @layout LoginLayout
 
+<EditForm Model="@Model" OnValidSubmit="CheckLogin" class="login-form">
+    <DataAnnotationsValidator />
 
+    <div class="login-header">
+        <img src="images/ansaarsoftlogo.png"
+             alt="Ansaar Soft logo"
+             class="login-logo" />
 
-<div>
+        <MudText Typo="Typo.h5" Align="Align.Center" GutterBottom="true">
+            Sign in
+        </MudText>
 
-    <img src="../images/ansaarsoftlogo.png" style="width: 200px; display: block; margin-left: auto; margin-right: auto;" />
+        <MudText Align="Align.Center" Color="Color.Secondary" Typo="Typo.body2">
+            Welcome to Password Management System
+        </MudText>
+    </div>
 
-    <MudText Typo="Typo.h4" GutterBottom="true">Sign In</MudText>
+    <MudTextField T="string"
+                  @bind-Value="Model.UserCode"
+                  For="@(() => Model.UserCode)"
+                  Label="User code"
+                  Variant="Variant.Outlined"
+                  Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Person"
+                  AutoFocus="true"
+                  Required="true"
+                  RequiredError="User code is required."
+                  Disabled="@IsSigningIn"
+                  autocomplete="username"
+                  Class="mt-5" />
 
-    <MudText>Welcome to Password Management System</MudText>
+    <MudTextField T="string"
+                  @bind-Value="Model.Password"
+                  For="@(() => Model.Password)"
+                  Label="Password"
+                  Variant="Variant.Outlined"
+                  InputType="@PasswordInput"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@PasswordInputIcon"
+                  AdornmentAriaLabel="@(PasswordVisibility ? "Hide password" : "Show password")"
+                  OnAdornmentClick="TogglePasswordVisibility"
+                  Required="true"
+                  RequiredError="Password is required."
+                  Disabled="@IsSigningIn"
+                  autocomplete="current-password"
+                  Class="mt-4" />
 
-    <MudTextField T="string" @bind-Value="oModel.UserCode" Label="User Code" Variant="Variant.Outlined" Class="my-6"></MudTextField>
+    <MudCheckBox T="bool"
+                 @bind-Checked="RememberMe"
+                 Label="Remember me"
+                 Color="Color.Primary"
+                 Disabled="@IsSigningIn"
+                 Class="my-3" />
 
-    <MudTextField T="string" @bind-Value="oModel.Password" OnKeyDown="PasswordKeypress" Immediate=true Label="Password" Variant="Variant.Outlined" InputType="@PasswordInput" 
-    Adornment="Adornment.End" AdornmentIcon="@PasswordInputIcon" OnAdornmentClick="TogglePasswordVisibility" />
+    <MudButton ButtonType="ButtonType.Submit"
+               Variant="Variant.Filled"
+               Color="Color.Primary"
+               Size="Size.Large"
+               FullWidth="true"
+               Disabled="@IsSigningIn">
+        @if (IsSigningIn)
+        {
+            <MudProgressCircular Class="me-2" Size="Size.Small" Indeterminate="true" />
+            <span>Signing in…</span>
+        }
+        else
+        {
+            <span>Sign in</span>
+        }
+    </MudButton>
 
-</div>
-
-<div Class="d-flex justify-space-between align-center">
-    <MudCheckBox T="bool" @bind-value="flgRememberme" Label="Remember me?" Color="Color.Primary" Class="ml-n1 my-3"></MudCheckBox>
-</div>
-<MudAlert Severity="Severity.Info" Class="mt-8 mud-width-full" Style="max-width:500px;">For registration and login contact MFM ®.</MudAlert>
-
-<MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true" OnClick="CheckLogin" Disabled="flgClicked">
-    @if (flgClicked)
-    {
-        <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"></MudProgressCircular>
-        <MudText Class="ms-1">Sign In</MudText>
-    }
-    else
-    {
-        <MudText>Sign In</MudText>
-    }
-
-</MudButton>
-
-
-
-
+    <MudText Typo="Typo.caption" Align="Align.Center" Color="Color.Secondary" Class="mt-4">
+        Need access? Contact the administrator.
+    </MudText>
+</EditForm>

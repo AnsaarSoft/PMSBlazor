@@ -1,9 +1,8 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-@inject NavigationManager oNavigation
-@inject AuthenticationStateProvider oAuthService
-@inject ProtectedSessionStorage oSessionStorage
-
+@inject NavigationManager Navigation
+@inject AuthenticationStateProvider Authentication
+@inject IJSRuntime JS
 
 <MudThemeProvider />
 <MudDialogProvider />
@@ -11,71 +10,124 @@
 
 <PageTitle>Password Management</PageTitle>
 
-<MudLayout>
-    <MudAppBar Elevation="4">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudSpacer />
-        <AuthorizeView>
-            <Authorized>
-                <MudText> <MudIcon Icon="@Icons.Rounded.WavingHand" /> Hi! @LoggedInUser <MudIcon Icon="@Icons.Rounded.Person" /> </MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="Logout" />
-            </Authorized>
-            <NotAuthorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Login" Color="Color.Inherit" OnClick="Logout" />
-            </NotAuthorized>
-        </AuthorizeView>
+<div class="app-shell">
+    <MudLayout>
+        <MudAppBar Class="app-topbar" Elevation="0">
+            <div class="topbar-left">
+                <MudTooltip Text="Open navigation">
+                    <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                                   Color="Color.Inherit"
+                                   Edge="Edge.Start"
+                                   OnClick="DrawerToggle"
+                                   aria-label="Open navigation" />
+                </MudTooltip>
 
-    </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
-        <MudDrawerHeader>
-            <MudText Typo="Typo.subtitle2">Password Management</MudText>
-        </MudDrawerHeader>
-        <NavMenu />
-    </MudDrawer>
-    <MudMainContent>
-        <MudContainer MaxWidth="MaxWidth.Large" Class="my-5 pt-5">
-            @Body
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
+                <div class="brand-mark" aria-hidden="true">
+                    <MudIcon Icon="@Icons.Material.Filled.Password" Size="Size.Small" />
+                </div>
+
+                <div class="brand-copy">
+                    <MudText Typo="Typo.subtitle1" Class="brand-title">Password Manager</MudText>
+                    <MudText Typo="Typo.caption" Class="brand-subtitle">Secure account vault</MudText>
+                </div>
+            </div>
+
+            <MudSpacer />
+
+            <AuthorizeView>
+                <Authorized>
+                    <div class="user-section">
+                        <MudAvatar Size="Size.Small" Color="Color.Primary" Class="user-avatar">
+                            @UserInitials
+                        </MudAvatar>
+
+                        <div class="user-copy">
+                            <span class="user-label">Signed in as</span>
+                            <span class="user-name">@LoggedInUser</span>
+                        </div>
+
+                        <div class="user-divider" aria-hidden="true"></div>
+
+                        <MudTooltip Text="Sign out">
+                            <MudIconButton Icon="@Icons.Material.Filled.Logout"
+                                           Color="Color.Inherit"
+                                           OnClick="Logout"
+                                           aria-label="Sign out" />
+                        </MudTooltip>
+                    </div>
+                </Authorized>
+            </AuthorizeView>
+        </MudAppBar>
+
+        <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Class="app-drawer">
+            <MudDrawerHeader Class="drawer-header">
+                <div>
+                    <MudText Typo="Typo.subtitle1">Password Manager</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">Account navigation</MudText>
+                </div>
+            </MudDrawerHeader>
+            <NavMenu OnNavigate="CloseDrawerAfterNavigation" />
+        </MudDrawer>
+
+        <MudMainContent>
+            <MudContainer MaxWidth="MaxWidth.Large" Class="app-content">
+                @Body
+            </MudContainer>
+        </MudMainContent>
+    </MudLayout>
+</div>
 
 @code {
     [CascadingParameter]
-    private Task<AuthenticationState> oAuthState { get; set; }
-    bool _drawerOpen = false;
-    string LoggedInUser = string.Empty;
+    private Task<AuthenticationState> AuthenticationState { get; set; } = default!;
 
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
+    private bool _drawerOpen;
+    private string LoggedInUser = string.Empty;
 
-    protected async override Task OnInitializedAsync()
+    private string UserInitials
     {
-        //return base.OnInitializedAsync();
-        var result = await oAuthState;
-        if (result is not null)
+        get
         {
-            if(result.User.Identity.IsAuthenticated)
-            {
-                //LoggedInUser = result.User.Identity.Name ;
-                var oSaveUserDataResult = await oSessionStorage.GetAsync<MstUser>("LoginUser");
-                if(oSaveUserDataResult.Success)
-                {
-                    LoggedInUser = oSaveUserDataResult.Value.FullName;
-                }
-            }
+            var initials = LoggedInUser
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(part => char.ToUpperInvariant(part[0]));
+
+            var value = string.Concat(initials);
+            return string.IsNullOrEmpty(value) ? "U" : value;
         }
     }
 
-    async Task Logout()
+    private void DrawerToggle() => _drawerOpen = !_drawerOpen;
+
+    private async Task CloseDrawerAfterNavigation()
     {
-        var CustomAuth = (CustomAuthentication)oAuthService;
-        await CustomAuth.UpdateAuthenticationState(null);
-        oNavigation.NavigateTo("/login", true);
+        try
+        {
+            if (await JS.InvokeAsync<bool>("pmsLayout.isMobile"))
+                _drawerOpen = false;
+        }
+        catch (JSDisconnectedException)
+        {
+            // The circuit is already navigating away.
+        }
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await AuthenticationState;
+        if (state.User.Identity?.IsAuthenticated != true)
+            return;
 
+        LoggedInUser = state.User.FindFirst(System.Security.Claims.ClaimTypes.Surname)?.Value
+            ?? state.User.Identity.Name
+            ?? string.Empty;
+    }
 
-
+    private async Task Logout()
+    {
+        var customAuthentication = (CustomAuthentication)Authentication;
+        await customAuthentication.UpdateAuthenticationState(null);
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
 }

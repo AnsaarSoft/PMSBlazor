@@ -14,7 +14,7 @@ namespace PasswordManagement.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "6.0.11");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.28");
 
             modelBuilder.Entity("PMSModels.Models.MstCard", b =>
                 {
@@ -45,7 +45,7 @@ namespace PasswordManagement.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(50)
+                        .HasMaxLength(2000)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Remarks")
@@ -74,19 +74,19 @@ namespace PasswordManagement.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("PasswodLenght")
+                    b.Property<int>("PasswordLength")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("flgCapitalLetter")
+                    b.Property<bool>("UseLowercase")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("flgNumbers")
+                    b.Property<bool>("UseNumbers")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("flgSmallLetter")
+                    b.Property<bool>("UseSymbols")
                         .HasColumnType("INTEGER");
 
-                    b.Property<bool>("flgSpecial")
+                    b.Property<bool>("UseUppercase")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -118,7 +118,7 @@ namespace PasswordManagement.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(50)
+                        .HasMaxLength(500)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("UserCode")
@@ -130,17 +130,6 @@ namespace PasswordManagement.Migrations
 
                     b.ToTable("MstUsers");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            Email = "mfmlive@gmail.com",
-                            FullName = "Muhammad Faisal Maqsood",
-                            IsActive = true,
-                            IsDeleted = false,
-                            Password = "admin",
-                            UserCode = "admin"
-                        });
                 });
 #pragma warning restore 612, 618
         }

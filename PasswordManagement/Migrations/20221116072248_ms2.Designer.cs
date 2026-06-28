@@ -132,17 +132,6 @@ namespace PasswordManagement.Migrations
 
                     b.ToTable("MstUsers");
 
-                    b.HasData(
-                        new
-                        {
-                            Id = -1,
-                            Email = "mfmlive@gmail.com",
-                            FullName = "Muhammad Faisal Maqsood",
-                            IsActive = true,
-                            IsDeleted = false,
-                            Password = "admin",
-                            UserCode = "admin"
-                        });
                 });
 #pragma warning restore 612, 618
         }

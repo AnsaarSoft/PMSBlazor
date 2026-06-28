@@ -1,0 +1,37 @@
+.edit-account-page {
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.page-heading {
+    margin-bottom: 1.5rem;
+}
+
+::deep .loading-surface,
+::deep .state-surface {
+    overflow: hidden;
+    border: 1px solid var(--mud-palette-lines-default);
+    border-radius: 12px;
+}
+
+::deep .state-surface {
+    text-align: center;
+}
+
+.state-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+    .state-actions {
+        flex-direction: column-reverse;
+    }
+
+    .state-actions ::deep .mud-button-root {
+        width: 100%;
+    }
+}

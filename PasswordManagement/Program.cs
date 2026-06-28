@@ -1,16 +1,17 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Services;
 using PasswordManagement.Data;
 using PasswordManagement.Authentication;
+using PasswordManagement.Services;
+using PasswordManagement.Security;
 using Microsoft.AspNetCore.Components.Authorization;
 using NLog;
 using NLog.Web;
-using System;
 
 var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 logger.Debug("application started");
@@ -25,14 +26,22 @@ try
     builder.Services.AddAuthenticationCore();
     builder.Services.AddRazorPages();
     builder.Services.AddServerSideBlazor();
+    builder.Services.AddDataProtection()
+        .SetApplicationName("PasswordManagement");
     builder.Services.AddScoped<ProtectedSessionStorage>();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthentication>();
     builder.Services.AddDbContext<AccountContext>(option =>
     {
-        //option.UseSqlite("Data Source = Data\\accounts.db");
-        option.UseSqlite(builder.Configuration.GetSection("ConnectionString").Value.ToString());
+        option.UseSqlite(builder.Configuration.GetConnectionString("Accounts")
+            ?? builder.Configuration["ConnectionString"]
+            ?? throw new InvalidOperationException("The accounts database connection string is not configured."));
     });
     builder.Services.AddScoped<AccountServices>();
+    builder.Services.AddSingleton<IUserPasswordService, UserPasswordService>();
+    builder.Services.AddSingleton<ICredentialProtector, CredentialProtector>();
+    builder.Services.AddScoped<StoredDataSecurityMigrator>();
+    builder.Services.AddScoped<AdminBootstrapper>();
+    builder.Services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
     builder.Services.AddMudServices(option =>
     {
         option.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomRight;
@@ -47,6 +56,14 @@ try
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
     var app = builder.Build();
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AccountContext>();
+        await dbContext.Database.MigrateAsync();
+        await scope.ServiceProvider.GetRequiredService<AdminBootstrapper>().EnsureAdminAsync();
+        await scope.ServiceProvider.GetRequiredService<StoredDataSecurityMigrator>().UpgradeAsync();
+    }
 
     // Configure the HTTP request pipeline.
     if (!app.Environment.IsDevelopment())
@@ -70,6 +87,7 @@ try
 catch (Exception ex)
 {
     logger.Error(ex);
+    throw;
 }
 finally
 {

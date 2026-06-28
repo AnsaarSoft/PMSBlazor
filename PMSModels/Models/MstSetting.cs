@@ -11,16 +11,12 @@ namespace PMSModels.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
-        public bool flgCapitalLetter { get; set; } = true;
-        [Required]
-        public bool flgSmallLetter { get; set; } =true;
-        [Required]
-        public bool flgNumbers { get; set; } = true;
-        [Required]
-        public bool flgSpecial { get; set; } = true;
-        [Required]
-        public int PasswodLenght { get; set; } = 16;
+        public bool UseUppercase { get; set; } = true;
+        public bool UseLowercase { get; set; } = true;
+        public bool UseNumbers { get; set; } = true;
+        public bool UseSymbols { get; set; } = true;
+        [Range(6, 20)]
+        public int PasswordLength { get; set; } = 16;
 
     }
 }

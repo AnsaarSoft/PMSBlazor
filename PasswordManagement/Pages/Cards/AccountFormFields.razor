@@ -1,0 +1,237 @@
+<div class="account-form">
+<MudPaper Class="form-surface" Elevation="1">
+    <section class="form-section">
+        <div class="section-heading">
+            <MudText Typo="Typo.h6">Account details</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Identify the service or application this account belongs to.
+            </MudText>
+        </div>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudAutocomplete T="string"
+                                 @ref="AccountTypeField"
+                                 @bind-Value="Model.CardName"
+                                 For="@(() => Model.CardName)"
+                                 SearchFunc="SearchAccountTypes"
+                                 Label="Account type"
+                                 Placeholder="For example: Banking or Social"
+                                 Variant="Variant.Outlined"
+                                 Adornment="Adornment.Start"
+                                 AdornmentIcon="@Icons.Material.Filled.Category"
+                                 AutoFocus="true"
+                                 Required="true"
+                                 RequiredError="Account type is required."
+                                 CoerceText="true"
+                                 CoerceValue="true"
+                                 ResetValueOnEmptyText="false"
+                                 Disabled="@(IsSaving || IsLoadingFormData)" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @ref="AccountNameField"
+                              @bind-Value="Model.Alias"
+                              For="@(() => Model.Alias)"
+                              Label="Account name"
+                              Placeholder="A recognizable name"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.AccountBox"
+                              Required="true"
+                              RequiredError="Account name is required."
+                              Disabled="@IsSaving" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @ref="WebsiteField"
+                              @bind-Value="Model.WebLink"
+                              For="@(() => Model.WebLink)"
+                              Label="Website (optional)"
+                              Placeholder="https://example.com"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Link"
+                              HelperText="You can enter example.com; https:// will be added automatically."
+                              Disabled="@IsSaving"
+                              autocomplete="url" />
+            </MudItem>
+        </MudGrid>
+    </section>
+
+    <MudDivider />
+
+    <section class="form-section">
+        <div class="section-heading">
+            <MudText Typo="Typo.h6">Credentials</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@CredentialsDescription</MudText>
+        </div>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" sm="6">
+                <MudTextField @ref="UserCodeField"
+                              @bind-Value="Model.UserCode"
+                              For="@(() => Model.UserCode)"
+                              Label="User code"
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Person"
+                              Required="true"
+                              RequiredError="User code is required."
+                              Disabled="@IsSaving"
+                              autocomplete="username" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @ref="EmailField"
+                              @bind-Value="Model.Email"
+                              For="@(() => Model.Email)"
+                              Label="Email (optional)"
+                              Variant="Variant.Outlined"
+                              InputType="InputType.Email"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Email"
+                              Disabled="@IsSaving"
+                              autocomplete="email" />
+            </MudItem>
+            <MudItem xs="12">
+                <MudTextField @ref="PasswordField"
+                              @bind-Value="Model.Password"
+                              For="@(() => Model.Password)"
+                              Label="Password"
+                              Variant="Variant.Outlined"
+                              InputType="@(IsPasswordVisible ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(IsPasswordVisible ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                              AdornmentAriaLabel="@(IsPasswordVisible ? "Hide password" : "Show password")"
+                              OnAdornmentClick="TogglePasswordVisibility"
+                              Required="true"
+                              RequiredError="Password is required."
+                              Disabled="@IsSaving"
+                              autocomplete="new-password" />
+
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                    @PasswordSettingsDescription
+                </MudText>
+
+                <div class="password-actions">
+                    <MudButton ButtonType="ButtonType.Button"
+                               Variant="Variant.Outlined"
+                               Color="Color.Primary"
+                               StartIcon="@(IsGenerating ? null : Icons.Material.Filled.AutoFixHigh)"
+                               Disabled="@(IsSaving || IsGenerating || !CanGeneratePassword)"
+                               OnClick="GeneratePassword">
+                        @if (IsGenerating)
+                        {
+                            <MudProgressCircular Class="me-2" Size="Size.Small" Indeterminate="true" />
+                            <span>Generating…</span>
+                        }
+                        else
+                        {
+                            <span>Generate password</span>
+                        }
+                    </MudButton>
+
+                    <MudButton ButtonType="ButtonType.Button"
+                               Variant="Variant.Text"
+                               Color="Color.Primary"
+                               StartIcon="@Icons.Material.Filled.ContentCopy"
+                               Disabled="@(IsSaving || IsGenerating || string.IsNullOrEmpty(Model.Password))"
+                               OnClick="CopyPassword">
+                        Copy password
+                    </MudButton>
+                </div>
+            </MudItem>
+        </MudGrid>
+    </section>
+
+    <MudDivider />
+
+    <section class="form-section">
+        <div class="section-heading">
+            <MudText Typo="Typo.h6">Additional information</MudText>
+        </div>
+
+        <MudTextField @ref="RemarksField"
+                      @bind-Value="Model.Remarks"
+                      For="@(() => Model.Remarks)"
+                      Label="Remarks (optional)"
+                      Variant="Variant.Outlined"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Notes"
+                      Lines="3"
+                      Disabled="@IsSaving" />
+    </section>
+
+    <div class="form-actions">
+        <MudButton ButtonType="ButtonType.Button"
+                   Variant="Variant.Text"
+                   Color="Color.Default"
+                   Disabled="@IsSaving"
+                   OnClick="Cancel">
+            Cancel
+        </MudButton>
+
+        <MudButton ButtonType="ButtonType.Submit"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@(IsSaving ? null : SubmitIcon)"
+                   Disabled="@IsSaving">
+            @if (IsSaving)
+            {
+                <MudProgressCircular Class="me-2" Size="Size.Small" Indeterminate="true" />
+                <span>@SubmittingText</span>
+            }
+            else
+            {
+                <span>@SubmitText</span>
+            }
+        </MudButton>
+    </div>
+</MudPaper>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public AccountFormModel Model { get; set; } = default!;
+    [Parameter, EditorRequired] public Func<string, Task<IEnumerable<string>>> SearchAccountTypes { get; set; } = default!;
+    [Parameter] public bool IsSaving { get; set; }
+    [Parameter] public bool IsLoadingFormData { get; set; }
+    [Parameter] public bool IsGenerating { get; set; }
+    [Parameter] public bool IsPasswordVisible { get; set; }
+    [Parameter] public bool CanGeneratePassword { get; set; }
+    [Parameter] public string PasswordSettingsDescription { get; set; } = string.Empty;
+    [Parameter] public string CredentialsDescription { get; set; } = string.Empty;
+    [Parameter] public string SubmitText { get; set; } = "Save";
+    [Parameter] public string SubmittingText { get; set; } = "Saving…";
+    [Parameter] public string? SubmitIcon { get; set; }
+    [Parameter] public EventCallback TogglePasswordVisibility { get; set; }
+    [Parameter] public EventCallback GeneratePassword { get; set; }
+    [Parameter] public EventCallback CopyPassword { get; set; }
+    [Parameter] public EventCallback Cancel { get; set; }
+
+    private MudAutocomplete<string>? AccountTypeField;
+    private MudTextField<string>? AccountNameField;
+    private MudTextField<string>? WebsiteField;
+    private MudTextField<string>? UserCodeField;
+    private MudTextField<string>? EmailField;
+    private MudTextField<string>? PasswordField;
+    private MudTextField<string>? RemarksField;
+
+    public async Task FocusFirstInvalidFieldAsync(EditContext editContext)
+    {
+        if (HasValidationError(editContext, nameof(Model.CardName)) && AccountTypeField is not null)
+            await AccountTypeField.FocusAsync();
+        else if (HasValidationError(editContext, nameof(Model.Alias)) && AccountNameField is not null)
+            await AccountNameField.FocusAsync();
+        else if (HasValidationError(editContext, nameof(Model.WebLink)) && WebsiteField is not null)
+            await WebsiteField.FocusAsync();
+        else if (HasValidationError(editContext, nameof(Model.UserCode)) && UserCodeField is not null)
+            await UserCodeField.FocusAsync();
+        else if (HasValidationError(editContext, nameof(Model.Email)) && EmailField is not null)
+            await EmailField.FocusAsync();
+        else if (HasValidationError(editContext, nameof(Model.Password)) && PasswordField is not null)
+            await PasswordField.FocusAsync();
+        else if (HasValidationError(editContext, nameof(Model.Remarks)) && RemarksField is not null)
+            await RemarksField.FocusAsync();
+    }
+
+    private bool HasValidationError(EditContext editContext, string fieldName)
+        => editContext.GetValidationMessages(new FieldIdentifier(Model, fieldName)).Any();
+}

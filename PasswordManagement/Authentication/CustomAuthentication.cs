@@ -1,64 +1,88 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
-using Microsoft.AspNetCore.Mvc.Filters;
 using PMSModels.Models;
-using System.Security.Claims;
 
-namespace PasswordManagement.Authentication
+namespace PasswordManagement.Authentication;
+
+public sealed class CustomAuthentication : AuthenticationStateProvider
 {
-    public class CustomAuthentication : AuthenticationStateProvider
+    private const string SessionKey = "LoginUser";
+    private static readonly ClaimsPrincipal Anonymous = new(new ClaimsIdentity());
+
+    private readonly ProtectedSessionStorage sessionStorage;
+    private readonly ILogger<CustomAuthentication> logger;
+
+    public CustomAuthentication(
+        ProtectedSessionStorage sessionStorage,
+        ILogger<CustomAuthentication> logger)
     {
-        private readonly ProtectedSessionStorage oSessionStorage;
-        private ClaimsPrincipal oAnonymous = new ClaimsPrincipal(new ClaimsIdentity());
-        public CustomAuthentication(ProtectedSessionStorage oSessionStorage)
-        {
-            this.oSessionStorage = oSessionStorage;
-        }
+        this.sessionStorage = sessionStorage;
+        this.logger = logger;
+    }
 
-        public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        try
         {
-            try
-            {
-                var oSaveUserDataResult = await oSessionStorage.GetAsync<MstUser>("LoginUser");
-                var oSaveUserData = oSaveUserDataResult.Success ? oSaveUserDataResult.Value : null;
-                if (oSaveUserData is null)
-                    return await Task.FromResult(new AuthenticationState(oAnonymous));
-                var ClaimedPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, oSaveUserData.UserCode),
-                    new Claim(ClaimTypes.Surname, oSaveUserData.FullName),
-                    new Claim(ClaimTypes.Email, oSaveUserData.Email),
-                    new Claim(ClaimTypes.Role, "Admin")
-                }, "CustomAuth"));
-                return await Task.FromResult(new AuthenticationState(ClaimedPrincipal));
-            }
-            catch
-            {
-                return await Task.FromResult(new AuthenticationState(oAnonymous));
-            }
+            var stored = await sessionStorage.GetAsync<AuthenticatedUserSession>(SessionKey);
+            return stored.Success && stored.Value is not null
+                ? new AuthenticationState(CreatePrincipal(stored.Value))
+                : new AuthenticationState(Anonymous);
         }
-
-        public async Task UpdateAuthenticationState(MstUser oUser)
+        catch (Exception ex)
         {
-            ClaimsPrincipal claimsPrincipal;
-            if (oUser is null)
-            {
-                await oSessionStorage.DeleteAsync("LoginUser");
-                claimsPrincipal = oAnonymous;
-            }
-            else
-            {
-                await oSessionStorage.SetAsync("LoginUser", oUser);
-                claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, oUser.UserCode),
-                    new Claim(ClaimTypes.Surname, oUser.FullName),
-                    new Claim(ClaimTypes.Email, oUser.Email),
-                    new Claim(ClaimTypes.Role, "Admin")
-                }));
-            }
-            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(claimsPrincipal)));
+            logger.LogWarning(ex, "The saved authentication session could not be restored.");
+            return new AuthenticationState(Anonymous);
         }
     }
+
+    public async Task UpdateAuthenticationState(MstUser? user)
+    {
+        ClaimsPrincipal principal;
+
+        if (user is null)
+        {
+            await sessionStorage.DeleteAsync(SessionKey);
+            principal = Anonymous;
+        }
+        else
+        {
+            var session = new AuthenticatedUserSession
+            {
+                UserCode = user.UserCode,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = "Admin"
+            };
+
+            await sessionStorage.SetAsync(SessionKey, session);
+            principal = CreatePrincipal(session);
+        }
+
+        NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
+    }
+
+    private static ClaimsPrincipal CreatePrincipal(AuthenticatedUserSession user)
+    {
+        var identity = new ClaimsIdentity(
+            new[]
+            {
+                new Claim(ClaimTypes.Name, user.UserCode),
+                new Claim(ClaimTypes.Surname, user.FullName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role, user.Role)
+            },
+            authenticationType: "PmsSession");
+
+        return new ClaimsPrincipal(identity);
+    }
+}
+
+public sealed class AuthenticatedUserSession
+{
+    public string UserCode { get; set; } = string.Empty;
+    public string FullName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = "Admin";
 }

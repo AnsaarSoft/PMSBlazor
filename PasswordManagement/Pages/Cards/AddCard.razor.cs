@@ -1,191 +1,258 @@
-﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.JSInterop;
 using MudBlazor;
 using PasswordManagement.Data;
+using PasswordManagement.Services;
 using PMSModels.Models;
 
 namespace PasswordManagement.Pages.Cards
 {
-    public partial class AddCard
+    public partial class AddCard : IDisposable
     {
-        #region Variables
+        private readonly AccountFormModel oModel = new();
+        private readonly NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+        private readonly List<string> AccountTypes = new();
 
-        MstCard oModel = new();
-        string SearchValue = string.Empty;
-        List<BreadcrumbItem> BreadCrumItems;
-        bool flgLoad = false;
-        NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
-        [Inject] NavigationManager oNavigation { get; set; }
-        [Inject] ISnackbar oToast { get; set; }
-        [Inject] AccountServices oServices { get; set; }
-        [Inject] IJSRuntime oJS { get; set; }
+        private EditContext FormContext = default!;
+        private MstSetting? PasswordSettings;
+        private bool IsLoadingFormData = true;
+        private bool IsSaving;
+        private bool IsGenerating;
+        private bool IsPasswordVisible;
+        private bool HasUnsavedChanges;
 
+        private AccountFormFields? AccountForm;
 
-        #endregion
+        private string PasswordSettingsDescription => IsLoadingFormData
+            ? "Loading password settings…"
+            : PasswordSettings is null
+                ? "Password generation is unavailable until settings are configured."
+                : PasswordGenerator.Describe(PasswordSettings);
 
-        #region Functions
-
-        public async Task InitiallizeForm()
+        private List<BreadcrumbItem> BreadcrumbItems { get; } = new()
         {
+            new BreadcrumbItem("Accounts", href: "/cardlist"),
+            new BreadcrumbItem("Add account", href: null, disabled: true)
+        };
+
+        [Inject] private NavigationManager oNavigation { get; set; } = default!;
+        [Inject] private ISnackbar oToast { get; set; } = default!;
+        [Inject] private AccountServices oServices { get; set; } = default!;
+        [Inject] private IPasswordGenerator PasswordGenerator { get; set; } = default!;
+        [Inject] private IJSRuntime oJS { get; set; } = default!;
+
+        protected override async Task OnInitializedAsync()
+        {
+            FormContext = new EditContext(oModel);
+            FormContext.OnFieldChanged += HandleFieldChanged;
+            await LoadFormDataAsync();
+        }
+
+        private void HandleFieldChanged(object? sender, FieldChangedEventArgs args)
+        {
+            HasUnsavedChanges = true;
+        }
+
+        private async Task LoadFormDataAsync()
+        {
+            IsLoadingFormData = true;
+
             try
             {
-                await Task.Delay(1000);
-                BreadCrumItems = new List<BreadcrumbItem>
+                PasswordSettings = await oServices.GetSettings();
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                WarningMessage("Password-generation settings could not be loaded.");
+            }
+
+            try
+            {
+                var accounts = await oServices.GetAllCards();
+                AccountTypes.AddRange(accounts
+                    .Select(account => account.CardName.Trim())
+                    .Where(type => !string.IsNullOrWhiteSpace(type))
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .OrderBy(type => type));
+            }
+            catch (Exception ex)
+            {
+                logger.Error(ex);
+                WarningMessage("Existing account types could not be loaded.");
+            }
+            finally
+            {
+                IsLoadingFormData = false;
+            }
+        }
+
+        private Task<IEnumerable<string>> SearchAccountTypes(string value)
+        {
+            IEnumerable<string> matches = AccountTypes;
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                matches = matches.Where(type =>
+                    type.Contains(value.Trim(), StringComparison.OrdinalIgnoreCase));
+            }
+
+            return Task.FromResult(matches);
+        }
+
+        private async Task SaveCard()
+        {
+            if (IsSaving)
+                return;
+
+            IsSaving = true;
+            MstCard? result;
+
+            try
+            {
+                var record = new MstCard
                 {
-                    new BreadcrumbItem("Cards", href: "#"),
-                    new BreadcrumbItem("Add Card", href: "#")
+                    CardName = oModel.CardName.Trim(),
+                    Alias = oModel.Alias.Trim(),
+                    UserCode = oModel.UserCode.Trim(),
+                    Password = oModel.Password,
+                    Email = oModel.Email.Trim(),
+                    WebLink = AccountFormUtilities.NormalizeWebLink(oModel.WebLink),
+                    Remarks = oModel.Remarks.Trim()
                 };
-                flgLoad = true;
+
+                result = await oServices.AddCard(record);
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                ErrorMessage("The account could not be added. Please try again.");
+                return;
             }
+            finally
+            {
+                IsSaving = false;
+            }
+
+            if (result is null)
+            {
+                ErrorMessage("The account could not be added. Please try again.");
+                return;
+            }
+
+            // Persistence has succeeded. Navigation cleanup must not report a false save failure.
+            HasUnsavedChanges = false;
+            SuccessMessage("Account added successfully.");
+            oNavigation.NavigateTo("/cardlist");
         }
 
-        public async Task SaveCard()
+        private async Task HandleInvalidSubmit(EditContext editContext)
         {
+            await FocusFirstInvalidFieldAsync(editContext);
+            ErrorMessage("Review the highlighted fields and try again.");
+        }
+
+        private async Task FocusFirstInvalidFieldAsync(EditContext editContext)
+        {
+            if (AccountForm is not null)
+                await AccountForm.FocusFirstInvalidFieldAsync(editContext);
+        }
+
+        private async Task CancelCard()
+        {
+            if (HasUnsavedChanges)
+            {
+                var discard = await oJS.InvokeAsync<bool>(
+                    "confirm",
+                    "Discard your changes and return to Accounts?");
+
+                if (!discard)
+                    return;
+            }
+
+            HasUnsavedChanges = false;
+            oNavigation.NavigateTo("/cardlist");
+        }
+
+        private async Task ConfirmInternalNavigation(LocationChangingContext context)
+        {
+            if (!HasUnsavedChanges || IsSaving)
+                return;
+
+            var discard = await oJS.InvokeAsync<bool>(
+                "confirm",
+                "You have unsaved changes. Do you want to leave this page?");
+
+            if (!discard)
+            {
+                context.PreventNavigation();
+                return;
+            }
+
+            HasUnsavedChanges = false;
+        }
+
+        private void TogglePasswordVisibility()
+        {
+            IsPasswordVisible = !IsPasswordVisible;
+        }
+
+        private async Task GeneratePassword()
+        {
+            if (IsGenerating || PasswordSettings is null)
+                return;
+
+            IsGenerating = true;
+
             try
             {
-                if (string.IsNullOrEmpty(oModel.CardName))
-                {
-                    InfoMessage("Type is mandatory.");
-                }
-                if (string.IsNullOrEmpty(oModel.Alias))
-                {
-                    InfoMessage("Alias is mandatory.");
-                }
-                if (string.IsNullOrEmpty(oModel.UserCode))
-                {
-                    InfoMessage("Usercode is mandatory.");
-                }
-                if (string.IsNullOrEmpty(oModel.Password))
-                {
-                    InfoMessage("Password is mandatory.");
-                }
-                if (string.IsNullOrEmpty(oModel.Email))
-                {
-                    InfoMessage("Email is mandatory.");
-                }
-                if (string.IsNullOrEmpty(oModel.WebLink))
-                {
-                    InfoMessage("Weblink is mandatory.");
-                }
-                var result = await oServices.AddCard(oModel);
-                if (result is not null)
-                {
-                    oNavigation.NavigateTo("/cardlist");
-                }
-                else
-                {
-                    ErrorMessage("Some error occured, Record didn't added.");
-                }
+                await Task.Yield();
+                oModel.Password = PasswordGenerator.Generate(PasswordSettings);
+                FormContext.NotifyFieldChanged(new FieldIdentifier(oModel, nameof(oModel.Password)));
+                SuccessMessage("Password generated.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                ErrorMessage(ex.Message);
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                ErrorMessage("A password could not be generated. Please try again.");
             }
-        }
-
-        public async Task CancelCard()
-        {
-            try
+            finally
             {
-                await Task.Delay(1);
-                oNavigation.NavigateTo("/cardlist");
-            }
-            catch (Exception ex)
-            {
-                logger.Error(ex);
+                IsGenerating = false;
             }
         }
 
-        public void SuccessMessage(string message)
+        private async Task CopyPassword()
         {
-            oToast.Add(message, Severity.Success);
-        }
-
-        public void ErrorMessage(string message)
-        {
-            oToast.Add(message, Severity.Error);
-        }
-
-        public void InfoMessage(string message)
-        {
-            oToast.Add(message, Severity.Info);
-        }
-
-        public async Task GeneratePassword()
-        {
+            if (string.IsNullOrEmpty(oModel.Password))
+                return;
 
             try
             {
-                var oPasswordSettings = await oServices.GetSettings();
-                if (oPasswordSettings is null) return;
-                string password = string.Empty;
-                int PasswordStrenght = oPasswordSettings.PasswodLenght;
-                for (int i = 0; i < 6; i++)
-                {
-                    if (PasswordStrenght <= password.Length) break;
-                    //Small Letter
-                    if (oPasswordSettings.flgSmallLetter)
-                    {
-                        Random smallLetter = new Random(i + DateTime.Now.Millisecond);
-                        password += Convert.ToChar(smallLetter.Next(97, 122));
-                    }
-                    if (PasswordStrenght <= password.Length) break;
-                    //Big Letter
-                    if (oPasswordSettings.flgCapitalLetter)
-                    {
-                        Random bigLetter = new Random(i + DateTime.Now.Millisecond + 2);
-                        password += Convert.ToChar(bigLetter.Next(65, 90));
-                    }
-                    if (PasswordStrenght <= password.Length) break;
-                    //Special Letter
-                    if (oPasswordSettings.flgSpecial)
-                    {
-                        char[] chars = new char[7];
-                        chars[0] = '!'; chars[1] = '#'; chars[2] = '@'; chars[3] = '$';
-                        chars[4] = '*'; chars[5] = '^'; chars[6] = '%';
-                        bool PresentInArray = chars.Any(value => password.Contains(value));
-                        if (!PresentInArray)
-                        {
-                            Random specialLetter = new Random(i + DateTime.Now.Millisecond);
-                            password += Convert.ToChar(chars[specialLetter.Next(0, 6)]);
-                        }
-                    }
-                    if (PasswordStrenght <= password.Length) break;
-                    //Number Letter
-                    if (oPasswordSettings.flgNumbers)
-                    {
-                        Random numberLetter = new Random(i + DateTime.Now.Millisecond);
-                        password += Convert.ToChar(numberLetter.Next(48, 57));
-                    }
-                }
-                if (oModel.Id != 0)
-                {
-                    oModel.Remarks += $"{Environment.NewLine}Password changed from {oModel.Password} to {password}";
-                }
-                oModel.Password = password;
-                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", password);
+                await oJS.InvokeVoidAsync("navigator.clipboard.writeText", oModel.Password);
+                SuccessMessage("Password copied.");
             }
             catch (Exception ex)
             {
                 logger.Error(ex);
+                WarningMessage("The password could not be copied.");
             }
-
         }
 
-        #endregion
+        private void SuccessMessage(string message) => oToast.Add(message, Severity.Success);
+        private void ErrorMessage(string message) => oToast.Add(message, Severity.Error);
+        private void WarningMessage(string message) => oToast.Add(message, Severity.Warning);
 
-        #region Events
-
-        protected async override Task OnInitializedAsync()
+        public void Dispose()
         {
-            await InitiallizeForm();
+            if (FormContext is not null)
+                FormContext.OnFieldChanged -= HandleFieldChanged;
         }
 
-        #endregion
     }
 }

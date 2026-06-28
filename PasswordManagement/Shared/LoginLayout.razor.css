@@ -1,0 +1,36 @@
+.login-background {
+    min-height: 100vh;
+    min-height: 100dvh;
+    background-image: url('images/bglogin.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.login-shell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 1.5rem;
+}
+
+.login-card-wrapper {
+    width: 100%;
+    max-width: 500px;
+}
+
+::deep .login-card {
+    border-radius: 16px;
+}
+
+@media (max-width: 600px) {
+    .login-shell {
+        padding: 0.75rem;
+    }
+
+    ::deep .login-card {
+        padding: 1.5rem !important;
+    }
+}

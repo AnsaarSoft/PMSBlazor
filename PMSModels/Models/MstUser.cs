@@ -18,7 +18,7 @@ namespace PMSModels.Models
         [StringLength(50)]
         public string UserCode { get; set; } = string.Empty;
         [Required]
-        [StringLength(50)]
+        [StringLength(500)]
         public string Password { get; set; } = string.Empty;
         [Required]
         [StringLength(200)]

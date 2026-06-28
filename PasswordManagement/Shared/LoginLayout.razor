@@ -6,31 +6,12 @@
 
 <PageTitle>Welcome Guest</PageTitle>
 
-<MudLayout>
-    <MudMainContent Class="cbg">
-        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex align-center" Style="height: 100vh;">
-            <div class="d-flex flex-column mud-width-full">
-                <MudPaper Elevation="25" Class="pa-8" Width="100%" MaxWidth="500px">
-                    @Body
-                </MudPaper>
-            </div>
-        </MudContainer>
-    </MudMainContent>
-</MudLayout>
-
-<style>
-    .cbg {
-        /* The image used */
-        background-image: url('images/bglogin.jpg');
-        /* Full height*/
-        height: 100%;
-        /* Center and scale the image nicely */
-        background-position: center;
-        background-repeat: no-repeat;
-        background-size: cover;
-    }
-
-    .mud-main-content {
-        padding-top: 20px;
-    }
-</style>
+<div class="login-background">
+    <div class="login-shell">
+        <div class="login-card-wrapper">
+            <MudPaper Elevation="10" Class="login-card pa-8" Width="100%" MaxWidth="460px">
+                @Body
+            </MudPaper>
+        </div>
+    </div>
+</div>

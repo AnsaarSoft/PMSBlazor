@@ -1,96 +1,200 @@
-﻿@page "/"
+@page "/"
 @page "/cardlist"
 @layout MainLayout
 @attribute [Authorize(Roles = "Admin")]
 
-@if (Cards.Count != 0)
-{
-    <MudBreadcrumbs Items="BreadCrumItems"></MudBreadcrumbs>
-    <MudText Typo="Typo.h5" Color="Color.Primary" Class="mb-4">Account List</MudText>
-    <MudCard Elevation="0">
-        <MudCardContent>
-            <MudContainer>
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="12">
-                        <MudTable Items="Cards" Breakpoint="Breakpoint.Md" Hover="true" Striped="true" Bordered="true" RowsPerPage=100 Filter="new Func<MstCard,bool>(FilterFuncCards)" @bind-SelectedItem="SelectedItem">
-                            <ToolBarContent>
-                                <MudIconButton Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Medium" OnClick="SendtoAddCard" />
-                                <MudSpacer />
-                                <MudTextField @bind-Value="SearchValue" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Immediate="true" Class="mt-0"></MudTextField>
-                            </ToolBarContent>
-                            <HeaderContent>
-                                <MudTh>Type</MudTh>
-                                <MudTh>Name</MudTh>
-                                <MudTh>User code</MudTh>
-                                <MudTh>Password</MudTh>
-                                <MudTh>Email</MudTh>
-                                <MudTh></MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd DataLabel="Type">@context.CardName</MudTd>
-                                <MudTd DataLabel="Name">@context.Alias </MudTd>
-                                <MudTd DataLabel="User code">
-                                    <div class="d-flex flex-nowrap" style="align-items: center;">
-                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyUser(context.UserCode))" Style="margin-right: 10px;" />
-                                        @context.UserCode
-                                    </div>
-                                </MudTd>
-                                <MudTd DataLabel="Password">
-                                    <div class="d-flex flex-nowrap" style="align-items: center;">
-                                        <MudIconButton Icon="@Icons.Material.Filled.ContentCopy" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(()=>CopyPassword(context.Password))" Style="margin-right: 10px;" />
-                                        @context.Password
-                                    </div>
-                                </MudTd>
-                                <MudTd DataLabel="Email">@context.Email</MudTd>
-                                <MudTd DataLabel="Actions">
-                                    <div class="d-flex flex-nowrap">
-                                        <MudIconButton Icon="@Icons.Material.Filled.Edit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogEdit(context.Id))" />
-                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="(()=>OpenDialogDelete(context))" Style="margin-left: 10px;" />
-                                    </div>
-                                </MudTd>
-                            </RowTemplate>
-                            <PagerContent>
-                                <MudSpacer />
-                                <MudTablePager HorizontalAlignment="HorizontalAlignment.Right" RowsPerPageString="Rows per page:"></MudTablePager>
-                            </PagerContent>
-                        </MudTable>
-                    </MudItem>
-                </MudGrid>
-            </MudContainer>
-        </MudCardContent>
-    </MudCard>
-}
-else
-{
-    <div class="CenterLoader">
-        <MudProgressCircular Color="Color.Primary" Class="MudLoader" Indeterminate="true" />
-    </div>
-}
+<div class="accounts-page">
+    @if (IsLoading)
+    {
+        <div class="page-heading">
+            <MudText Typo="Typo.h4">Accounts</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">Loading your saved accounts…</MudText>
+        </div>
 
-<style>
-
-    .btnSave {
-        margin-left: 30px;
-        width: 100px;
+        <MudPaper Class="loading-surface pa-4" Elevation="0">
+            @for (var index = 0; index < 6; index++)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="52px" Class="mb-2" />
+            }
+        </MudPaper>
     }
+    else if (!string.IsNullOrEmpty(LoadErrorMessage))
+    {
+        <div class="page-heading">
+            <MudText Typo="Typo.h4">Accounts</MudText>
+        </div>
 
-    .btnCancel {
-        margin-left: 15px;
-        width: 100px;
+        <MudPaper Class="state-surface pa-8" Elevation="0">
+            <MudIcon Icon="@Icons.Material.Filled.CloudOff" Color="Color.Error" Size="Size.Large" />
+            <MudText Typo="Typo.h6" Class="mt-3">Accounts could not be loaded</MudText>
+            <MudText Color="Color.Secondary" Class="mt-1 mb-4">@LoadErrorMessage</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Refresh"
+                       OnClick="LoadAccountsAsync">
+                Retry
+            </MudButton>
+        </MudPaper>
     }
+    else
+    {
+        <div class="page-header">
+            <div>
+                <MudText Typo="Typo.h4">Accounts</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    @Cards.Count @(Cards.Count == 1 ? "saved account" : "saved accounts")
+                </MudText>
+            </div>
 
-    .CenterLoader {
-        display: flex;
-        height: 700px;
-        width: 100%;
-        justify-content: center;
-        justify-items: center;
-    }
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="SendtoAddCard">
+                Add account
+            </MudButton>
+        </div>
 
-    .MudLoader {
-        justify-content: center;
-        height: 100px;
-        width: 100px;
-        margin: auto;
+        @if (Cards.Count == 0)
+        {
+            <MudPaper Class="state-surface pa-8" Elevation="0">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBox" Color="Color.Primary" Size="Size.Large" />
+                <MudText Typo="Typo.h6" Class="mt-3">No accounts yet</MudText>
+                <MudText Color="Color.Secondary" Class="mt-1 mb-4">
+                    Add your first account to begin managing credentials.
+                </MudText>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Add"
+                           OnClick="SendtoAddCard">
+                    Add account
+                </MudButton>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Class="accounts-surface" Elevation="1">
+                <div class="table-toolbar">
+                    <div class="search-wrapper">
+                        <MudTextField @bind-Value="SearchValue"
+                                      Label="Search accounts"
+                                      Placeholder="Name, user code, email, or website"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.Search"
+                                      Immediate="true"
+                                      DebounceInterval="300"
+                                      Clearable
+                                      aria-label="Search accounts" />
+                    </div>
+                </div>
+
+                <MudTable Items="Cards"
+                          Breakpoint="Breakpoint.Md"
+                          Hover="true"
+                          RowsPerPage="10"
+                          Filter="new Func<MstCard, bool>(FilterFuncCards)">
+                    <HeaderContent>
+                        <MudTh><MudTableSortLabel SortBy="new Func<MstCard, object>(account => account.CardName)">Type</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<MstCard, object>(account => account.Alias)">Name</MudTableSortLabel></MudTh>
+                        <MudTh><MudTableSortLabel SortBy="new Func<MstCard, object>(account => account.UserCode)">User code</MudTableSortLabel></MudTh>
+                        <MudTh>Password</MudTh>
+                        <MudTh Class="email-column"><MudTableSortLabel SortBy="new Func<MstCard, object>(account => account.Email)">Email</MudTableSortLabel></MudTh>
+                        <MudTh Class="actions-column">Actions</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Type">@context.CardName</MudTd>
+                        <MudTd DataLabel="Name">@context.Alias</MudTd>
+                        <MudTd DataLabel="User code">
+                            <div class="credential-cell">
+                                <MudTooltip Text="Copy user code">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Default"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => CopyUser(context.UserCode))"
+                                                   aria-label="@($"Copy user code for {context.Alias}")" />
+                                </MudTooltip>
+                                <span class="credential-value">@context.UserCode</span>
+                            </div>
+                        </MudTd>
+                        <MudTd DataLabel="Password">
+                            <div class="credential-cell">
+                                <MudTooltip Text="@(IsPasswordVisible(context.Id) ? "Hide password" : "Show password")">
+                                    <MudIconButton Icon="@(IsPasswordVisible(context.Id) ? Icons.Material.Filled.VisibilityOff : Icons.Material.Filled.Visibility)"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Default"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => TogglePasswordVisibility(context.Id))"
+                                                   aria-label="@($"{(IsPasswordVisible(context.Id) ? "Hide" : "Show")} password for {context.Alias}")" />
+                                </MudTooltip>
+                                <MudTooltip Text="Copy password">
+                                    <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Default"
+                                                   Size="Size.Small"
+                                                   OnClick="@(() => CopyPassword(context.Password))"
+                                                   aria-label="@($"Copy password for {context.Alias}")" />
+                                </MudTooltip>
+                                <span class="credential-value password-value">
+                                    @(IsPasswordVisible(context.Id) ? context.Password : "••••••••")
+                                </span>
+                            </div>
+                        </MudTd>
+                        <MudTd DataLabel="Email" Class="email-column">@context.Email</MudTd>
+                        <MudTd DataLabel="Actions" Class="actions-column">
+                            <div class="desktop-actions">
+                                <MudTooltip Text="Edit account">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Primary"
+                                                   Size="Size.Small"
+                                                   OnClick="(() => OpenDialogEdit(context.Id))"
+                                                   aria-label="@($"Edit {context.Alias}")" />
+                                </MudTooltip>
+                                <MudTooltip Text="Delete account">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                   Variant="Variant.Text"
+                                                   Color="Color.Error"
+                                                   Size="Size.Small"
+                                                   OnClick="(() => OpenDialogDelete(context))"
+                                                   aria-label="@($"Delete {context.Alias}")" />
+                                </MudTooltip>
+                            </div>
+
+                            <div class="mobile-actions">
+                                <MudMenu Icon="@Icons.Material.Filled.MoreVert"
+                                         Size="Size.Small"
+                                         aria-label="@($"Actions for {context.Alias}")">
+                                    <MudMenuItem OnClick="(() => OpenDialogEdit(context.Id))">
+                                        Edit
+                                    </MudMenuItem>
+                                    <MudMenuItem OnClick="(() => OpenDialogDelete(context))">
+                                        Delete
+                                    </MudMenuItem>
+                                </MudMenu>
+                            </div>
+                        </MudTd>
+                    </RowTemplate>
+
+                    <NoRecordsContent>
+                        <div class="filtered-empty-state">
+                            <MudIcon Icon="@Icons.Material.Filled.SearchOff" Color="Color.Secondary" Size="Size.Large" />
+                            <MudText Typo="Typo.h6" Class="mt-2">No accounts match your search</MudText>
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="ClearSearch" Class="mt-1">
+                                Clear search
+                            </MudButton>
+                        </div>
+                    </NoRecordsContent>
+
+                    <PagerContent>
+                        <MudTablePager HorizontalAlignment="HorizontalAlignment.Right"
+                                       RowsPerPageString="Rows per page:"
+                                       PageSizeOptions="@PageSizeOptions" />
+                    </PagerContent>
+                </MudTable>
+            </MudPaper>
+        }
     }
-</style>    
+</div>

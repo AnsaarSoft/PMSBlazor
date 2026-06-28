@@ -1,199 +1,240 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using PasswordManagement.Security;
 using PMSModels.Models;
 
-namespace PasswordManagement.Data
+namespace PasswordManagement.Data;
+
+public sealed class AccountServices
 {
-    public class AccountServices
+    private readonly AccountContext dbContext;
+    private readonly ICredentialProtector credentials;
+    private readonly IUserPasswordService userPasswords;
+
+    public AccountServices(
+        AccountContext dbContext,
+        ICredentialProtector credentials,
+        IUserPasswordService userPasswords)
     {
-        #region Variables
-        private AccountContext dbContext;
-        private readonly ILogger<AccountServices> logger;
+        this.dbContext = dbContext;
+        this.credentials = credentials;
+        this.userPasswords = userPasswords;
+    }
 
-        #endregion
+    public async Task<List<MstCard>> GetAllCards(CancellationToken cancellationToken = default)
+    {
+        var cards = await dbContext.MstCards
+            .AsNoTracking()
+            .Where(card => !card.IsDeleted)
+            .OrderBy(card => card.CardName)
+            .ThenBy(card => card.Alias)
+            .ToListAsync(cancellationToken);
 
-        #region Constructor
-        public AccountServices(AccountContext accountDBContext , ILogger<AccountServices> plogger)
-        {
-            dbContext = accountDBContext;
-            this.logger = plogger;
-        }
+        foreach (var card in cards)
+            card.Password = credentials.Unprotect(card.Password);
 
-        #endregion
+        return cards;
+    }
 
-        #region Cards CRUD
+    public async Task<MstCard?> GetCard(int id, CancellationToken cancellationToken = default)
+    {
+        var card = await dbContext.MstCards
+            .AsNoTracking()
+            .FirstOrDefaultAsync(card => card.Id == id && !card.IsDeleted, cancellationToken);
 
-        public async Task<List<MstCard>> GetAllCards()
-        {
-            var Collection = await (from a in dbContext.MstCards
-                              where a.IsDeleted == false
-                              orderby a.CardName ascending
-                              select a).ToListAsync();
-            return Collection;
-        }
+        if (card is not null)
+            card.Password = credentials.Unprotect(card.Password);
 
-        public async Task<MstCard> GetCard(int Id)
-        {
-            var record = await (from a in dbContext.MstCards
-                          where a.Id == Id
-                          select a).FirstOrDefaultAsync();
-            if (record is not null)
-                return record;
-            else
-            {
-                return null;
-            }
-        }
+        return card;
+    }
 
-        public async Task<MstCard> AddCard(MstCard record)
+    public async Task<MstCard> AddCard(MstCard record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+
+        var plainPassword = record.Password;
+        record.Password = credentials.Protect(plainPassword);
+
+        try
         {
             dbContext.MstCards.Add(record);
-            await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return record;
+        }
+        finally
+        {
+            dbContext.Entry(record).State = EntityState.Detached;
+            record.Password = plainPassword;
+        }
+    }
+
+    public async Task<MstCard?> UpdateCard(MstCard record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+
+        var existing = await dbContext.MstCards
+            .FirstOrDefaultAsync(card => card.Id == record.Id && !card.IsDeleted, cancellationToken);
+
+        if (existing is null)
+            return null;
+
+        existing.CardName = record.CardName;
+        existing.Alias = record.Alias;
+        existing.UserCode = record.UserCode;
+        existing.Password = credentials.Protect(record.Password);
+        existing.Email = record.Email;
+        existing.Remarks = record.Remarks;
+        existing.WebLink = record.WebLink;
+        existing.IsActive = record.IsActive;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return record;
+    }
+
+    public async Task<bool> DeleteCard(MstCard record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+
+        var existing = await dbContext.MstCards
+            .FirstOrDefaultAsync(card => card.Id == record.Id && !card.IsDeleted, cancellationToken);
+
+        if (existing is null)
+            return false;
+
+        existing.IsDeleted = true;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public Task<MstSetting?> GetSettings(CancellationToken cancellationToken = default)
+    {
+        return dbContext.MstSettings
+            .AsNoTracking()
+            .OrderBy(setting => setting.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<MstSetting?> SaveSettings(MstSetting record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+
+        if (record.Id == 0)
+        {
+            dbContext.MstSettings.Add(record);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            dbContext.Entry(record).State = EntityState.Detached;
             return record;
         }
 
-        public async Task<MstCard> UpdateCard(MstCard record)
+        var existing = await dbContext.MstSettings
+            .FirstOrDefaultAsync(setting => setting.Id == record.Id, cancellationToken);
+
+        if (existing is null)
+            return null;
+
+        existing.PasswordLength = record.PasswordLength;
+        existing.UseUppercase = record.UseUppercase;
+        existing.UseLowercase = record.UseLowercase;
+        existing.UseNumbers = record.UseNumbers;
+        existing.UseSymbols = record.UseSymbols;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return record;
+    }
+
+    public Task<List<MstUser>> GetAllUsers(CancellationToken cancellationToken = default)
+    {
+        return dbContext.MstUsers
+            .AsNoTracking()
+            .Where(user => !user.IsDeleted)
+            .OrderBy(user => user.FullName)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<MstUser?> AuthenticateUser(
+        string userCode,
+        string password,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userCode) || string.IsNullOrEmpty(password))
+            return null;
+
+        var normalizedUserCode = userCode.Trim();
+        var user = await dbContext.MstUsers.FirstOrDefaultAsync(
+            candidate => candidate.UserCode == normalizedUserCode
+                && candidate.IsActive
+                && !candidate.IsDeleted,
+            cancellationToken);
+
+        if (user is null)
+            return null;
+
+        var result = userPasswords.Verify(user, password);
+        if (result == PasswordVerificationResult.Failed)
+            return null;
+
+        if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
-            var IfExist = (from a in dbContext.MstCards where a.Id == record.Id select a).FirstOrDefault();
-            if(IfExist is not null)
-            {
-                dbContext.Update(record);
-                await dbContext.SaveChangesAsync();
-                return record;
-            }
-            else
-            {
-                record = null;
-                return record;
-            }
+            user.Password = userPasswords.Hash(user, password);
+            await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DeleteCard(MstCard record)
+        return new MstUser
         {
-            var IfExist = (from a in dbContext.MstCards where a.Id == record.Id select a).FirstOrDefault();
-            if(IfExist is not null)
-            {
-                record.IsDeleted = true;
-                dbContext.Update(record);
-                await dbContext.SaveChangesAsync();
-            }
-        }
+            Id = user.Id,
+            UserCode = user.UserCode,
+            FullName = user.FullName,
+            Email = user.Email,
+            IsActive = user.IsActive,
+            IsDeleted = user.IsDeleted
+        };
+    }
 
-        #endregion
+    public async Task<MstUser> AddUser(MstUser record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+        record.Password = userPasswords.Hash(record, record.Password);
+        dbContext.MstUsers.Add(record);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        dbContext.Entry(record).State = EntityState.Detached;
+        record.Password = string.Empty;
+        return record;
+    }
 
-        #region Settings CRUD
+    public async Task<bool> UpdateUser(MstUser record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
 
-        public async Task<MstSetting> GetSettings()
-        {
-            var oRecord = await  (from a in dbContext.MstSettings
-                           select a).FirstOrDefaultAsync();
-            return oRecord;
-        }
+        var existing = await dbContext.MstUsers.FirstOrDefaultAsync(user => user.Id == record.Id, cancellationToken);
+        if (existing is null)
+            return false;
 
-        public async Task<MstSetting> AddSetting(MstSetting record)
-        {
-            if(record.Id == 0)
-            {
-                dbContext.MstSettings.Add(record);
-                await dbContext.SaveChangesAsync();
-                return record;
-            }
-            else
-            {
-                var IfExist = (from a in dbContext.MstSettings where a.Id == record.Id select a).FirstOrDefault();
-                if (IfExist is not null)
-                {
-                    dbContext.Update(record);
-                    await dbContext.SaveChangesAsync();
-                    return record;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
+        existing.UserCode = record.UserCode;
+        existing.FullName = record.FullName;
+        existing.Email = record.Email;
+        existing.IsActive = record.IsActive;
+        existing.IsDeleted = record.IsDeleted;
 
-        public async Task UpdateSetting(MstSetting record)
-        {
-            var IfExist = (from a in dbContext.MstSettings where a.Id == record.Id select a).FirstOrDefault();
-            if (IfExist is not null)
-            {
-                dbContext.Update(record);
-                await dbContext.SaveChangesAsync();
-            }
-        }
+        if (!string.IsNullOrWhiteSpace(record.Password))
+            existing.Password = userPasswords.Hash(existing, record.Password);
 
-        public async Task DeleteSetting(MstSetting record)
-        {
-            var IfExist = (from a in dbContext.MstSettings where a.Id == record.Id select a).FirstOrDefault();
-            if (IfExist is not null)
-            {
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
+    }
 
-                dbContext.Update(record);
-                await dbContext.SaveChangesAsync();
-            }
-        }
+    public async Task<bool> DeleteUser(MstUser record, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(record);
 
-        #endregion
+        var existing = await dbContext.MstUsers
+            .FirstOrDefaultAsync(user => user.Id == record.Id && !user.IsDeleted, cancellationToken);
 
-        #region User CRUD
+        if (existing is null)
+            return false;
 
-        public async Task<List<MstUser>> GetAllUsers()
-        {
-            return await dbContext.MstUsers.ToListAsync();
-        }
-
-        public async Task<MstUser> CheckUser(MstUser record)
-        {
-            try
-            {
-                var IfExists = await (from a in dbContext.MstUsers where a.UserCode == record.UserCode && a.Password == record.Password select a).FirstOrDefaultAsync();
-                if (IfExists is not null)
-                {
-                    return IfExists;
-                }
-                else
-                {
-                    MstUser user = null;
-                    return user;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError("Checkuser exception " + ex.Message);
-                MstUser user = null;
-                return user;
-            }
-            
-        }
-
-        public async Task AddUser(MstUser record)
-        {
-            dbContext.MstUsers.Add(record);
-            await dbContext.SaveChangesAsync();
-        }
-
-        public async Task UpdateUser(MstUser record)
-        {
-            var IfExist = (from a in dbContext.MstUsers where a.Id == record.Id select a).FirstOrDefault();
-            if (IfExist is not null)
-            {
-                dbContext.Update(record);
-                await dbContext.SaveChangesAsync();
-            }
-        }
-
-        public async Task DeleteUser(MstUser record)
-        {
-            var IfExist = (from a in dbContext.MstSettings where a.Id == record.Id select a).FirstOrDefault();
-            if (IfExist is not null)
-            {
-
-                dbContext.Update(record);
-                await dbContext.SaveChangesAsync();
-            }
-        }
-
-        #endregion
+        existing.IsDeleted = true;
+        existing.IsActive = false;
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }

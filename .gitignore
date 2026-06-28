@@ -343,6 +343,15 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 
+# Local password-vault data and Data Protection keys
+**/Data/accounts.db
+**/Data/accounts.db-shm
+**/Data/accounts.db-wal
+**/DataProtection-Keys/
+
+# Local UI review screenshots
+/loginissue.png
+
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
 

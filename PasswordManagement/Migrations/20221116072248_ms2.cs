@@ -36,19 +36,10 @@ namespace PasswordManagement.Migrations
                 nullable: false,
                 defaultValue: false);
 
-            migrationBuilder.InsertData(
-                table: "MstUsers",
-                columns: new[] { "Id", "Email", "FullName", "IsActive", "IsDeleted", "Password", "UserCode" },
-                values: new object[] { -1, "mfmlive@gmail.com", "Muhammad Faisal Maqsood", true, false, "admin", "admin" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DeleteData(
-                table: "MstUsers",
-                keyColumn: "Id",
-                keyValue: -1);
-
             migrationBuilder.DropColumn(
                 name: "IsActive",
                 table: "MstUsers");
