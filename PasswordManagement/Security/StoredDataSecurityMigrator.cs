@@ -34,10 +34,17 @@ public sealed class StoredDataSecurityMigrator
         }
 
         var cards = await dbContext.MstCards.ToListAsync(cancellationToken);
-        foreach (var card in cards.Where(card => !credentials.IsProtected(card.Password)))
+        foreach (var card in cards)
         {
-            card.Password = credentials.Protect(card.Password);
-            changed = true;
+            if (credentials.IsProtected(card.Password))
+            {
+                _ = credentials.Unprotect(card.Password);
+            }
+            else
+            {
+                card.Password = credentials.Protect(card.Password);
+                changed = true;
+            }
         }
 
         if (!changed)
