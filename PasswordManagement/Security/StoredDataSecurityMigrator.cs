@@ -36,7 +36,13 @@ public sealed class StoredDataSecurityMigrator
         var cards = await dbContext.MstCards.ToListAsync(cancellationToken);
         foreach (var card in cards)
         {
-            if (credentials.IsProtected(card.Password))
+            if (credentials.IsLegacyProtected(card.Password))
+            {
+                throw new InvalidOperationException(
+                    "A stored credential still uses legacy Data Protection encryption. " +
+                    "Restore the previous key ring and run the one-time AES-GCM migration before starting this version.");
+            }
+            else if (credentials.IsProtected(card.Password))
             {
                 _ = credentials.Unprotect(card.Password);
             }

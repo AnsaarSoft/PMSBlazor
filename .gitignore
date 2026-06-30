@@ -348,6 +348,7 @@ healthchecksdb
 **/Data/accounts.db-shm
 **/Data/accounts.db-wal
 **/DataProtection-Keys/
+**/DataProtectionKeys/
 
 # Local UI review screenshots
 /loginissue.png

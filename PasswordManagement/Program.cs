@@ -27,15 +27,8 @@ try
     builder.Services.AddRazorPages();
     builder.Services.AddServerSideBlazor();
 
-    var configuredKeyPath = builder.Configuration["DataProtection:KeysPath"] ?? "DataProtection-Keys";
-    var dataProtectionKeyPath = Path.IsPathRooted(configuredKeyPath)
-        ? configuredKeyPath
-        : Path.Combine(builder.Environment.ContentRootPath, configuredKeyPath);
-    Directory.CreateDirectory(dataProtectionKeyPath);
-
     builder.Services.AddDataProtection()
-        .SetApplicationName("PasswordManagement")
-        .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath));
+        .SetApplicationName("PasswordManagement");
     builder.Services.AddScoped<ProtectedSessionStorage>();
     builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthentication>();
     builder.Services.AddDbContext<AccountContext>(option =>
